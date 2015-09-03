@@ -30,8 +30,11 @@ public class Main {
 	}
 	
 	static private void getAllCounts(String organism) throws PtoolsErrorException {
-		GeneCounts.getGeneCounts(host, organism, port);
-//		getCompoundCounts(conn, organism);
+//		GeneCounts.getGeneCounts(host, organism, port);
+//		CompoundCounts.getCompoundCounts(host, organism, port);
+		
+		
+		
 //		getReactionCounts(conn, organism);
 //		getEnzymaticReactionCounts(conn, organism);
 //		getPathwayCounts(conn, organism);
@@ -39,7 +42,10 @@ public class Main {
 	}
 	
 	static private void printAllTypes(String organism) throws PtoolsErrorException {
-		GeneCounts.printGenesTab(host, organism, port, "geneCounts_CornCyc4.tab");
+//		GeneCounts.printGenesTab(host, organism, port, "geneCounts_"+organism+".tab");
+		CompoundCounts.printCompoundsTab(host, organism, port, "compoundCounts_"+organism+".tab");
+		
+		
 //		printCompoundsTab(organismCorn, "compoundCounts_CornCyc4.tab");
 //		printReactionsTab(organismCorn, "reactionCounts_CornCyc4.tab");
 //		printPathwaysTab(organismCorn, "pathwayCounts_CornCyc4.tab");
