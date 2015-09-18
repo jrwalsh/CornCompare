@@ -1,20 +1,35 @@
 package edu.iastate.CornCompare;
 
-import java.io.File;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.iastate.javacyco.Compound;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class CompoundCounts {
+public class CompoundCounts extends Counter {
 	private static String ptoolsClass = "|Compounds|";
+	private JavacycConnection conn;
+	private String fileName;
+	private boolean verbose = false;
 	
-	public static void getCompoundCounts(String host, String organism, int port) throws PtoolsErrorException {
+	
+	public CompoundCounts(String host, String organism, int port, String fileName, boolean verbose) {
+		conn = new JavacycConnection(host, port);
+		conn.selectOrganism(organism);
+		this.fileName = fileName;
+		this.verbose = verbose;
+	}
+	
+	@Override
+	public Counts count() throws PtoolsErrorException {
+		return null;
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void getCompoundCounts(String host, String organism, int port) throws PtoolsErrorException {
 		JavacycConnection conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		
@@ -37,7 +52,7 @@ public class CompoundCounts {
 		System.out.println("Compound Instances: " + compoundInstances.size());
 	}
 	
-	public static void printCompoundsTab(String host, String organism, int port, String fileName) throws PtoolsErrorException {
+	public void printCompoundsTab(String host, String organism, int port, String fileName) throws PtoolsErrorException {
 		JavacycConnection conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		
@@ -56,23 +71,5 @@ public class CompoundCounts {
 		
 		printString(fileName, printString);
 	}
-	
-	/**
-	 * Simple function to print a string to the specified file location.
-	 * 
-	 * @param fileName
-	 * @param printString
-	 */
-	private static void printString(String fileName, String printString) {
-		PrintStream o = null;
-		try {
-			o = new PrintStream(new File(fileName));
-			o.println(printString);
-			o.close();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-	}
+
 }

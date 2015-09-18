@@ -1,7 +1,5 @@
 package edu.iastate.CornCompare;
 
-import java.io.File;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,10 +8,28 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class GeneCounts {
+public class GeneCounts extends Counter {
 	private static String ptoolsClass = "|Genes|";
+	private JavacycConnection conn;
+	private String fileName;
+	private boolean verbose = false;
 	
-	public static void getGeneCounts(String host, String organism, int port) throws PtoolsErrorException {
+	
+	public GeneCounts(String host, String organism, int port, String fileName, boolean verbose) {
+		conn = new JavacycConnection(host, port);
+		conn.selectOrganism(organism);
+		this.fileName = fileName;
+		this.verbose = verbose;
+	}
+	
+	@Override
+	public Counts count() throws PtoolsErrorException {
+		return null;
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void getGeneCounts(String host, String organism, int port) throws PtoolsErrorException {
 		JavacycConnection conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		
@@ -42,7 +58,7 @@ public class GeneCounts {
 		System.out.println("Gene Unique Instances without suffix: " + geneUniqueInstances.size());
 	}
 	
-	public static void printGenesTab(String host, String organism, int port, String fileName) throws PtoolsErrorException {
+	public void printGenesTab(String host, String organism, int port, String fileName) throws PtoolsErrorException {
 		JavacycConnection conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		
@@ -60,22 +76,4 @@ public class GeneCounts {
 		printString(fileName, printString);
 	}
 	
-	/**
-	 * Simple function to print a string to the specified file location.
-	 * 
-	 * @param fileName
-	 * @param printString
-	 */
-	private static void printString(String fileName, String printString) {
-		PrintStream o = null;
-		try {
-			o = new PrintStream(new File(fileName));
-			o.println(printString);
-			o.close();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-	}
 }

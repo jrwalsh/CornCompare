@@ -13,11 +13,11 @@ public class Main {
 		try {
 			Long start = System.currentTimeMillis();
 			
-			getAllCounts(organismMaize);
-			printAllTypes(organismMaize);
+			getAllCounts();
+//			printAllTypes(organismMaize);
 			
-			getAllCounts(organismCorn);
-			printAllTypes(organismCorn);
+//			getAllCounts(organismCorn);
+//			printAllTypes(organismCorn);
 			
 			Long stop = System.currentTimeMillis();
 			Long runtime = (stop - start) / 1000;
@@ -29,10 +29,20 @@ public class Main {
 		}
 	}
 	
-	static private void getAllCounts(String organism) throws PtoolsErrorException {
+	static private void getAllCounts() throws PtoolsErrorException {
 //		GeneCounts.getGeneCounts(host, organism, port);
 //		CompoundCounts.getCompoundCounts(host, organism, port);
 		
+		
+//		ReactionCounts reactionCountsMaize = new ReactionCounts(host, organismMaize, port, "reactionCounts_Maize.tab", true);
+//		reactionCountsMaize.count();
+//		ReactionCounts reactionCountsCorn = new ReactionCounts(host, organismCorn, port, "reactionCounts_Corn.tab", true);
+//		reactionCountsCorn.count();
+		
+		PathwayCounts pathwayCountsMaize = new PathwayCounts(host, organismMaize, port, "pathwayCounts_Maize.tab", true);
+		pathwayCountsMaize.count();
+		PathwayCounts pathwayCountsCorn = new PathwayCounts(host, organismCorn, port, "pathwayCounts_Corn.tab", true);
+		pathwayCountsCorn.count();
 		
 		
 //		getReactionCounts(conn, organism);
@@ -43,7 +53,7 @@ public class Main {
 	
 	static private void printAllTypes(String organism) throws PtoolsErrorException {
 //		GeneCounts.printGenesTab(host, organism, port, "geneCounts_"+organism+".tab");
-		CompoundCounts.printCompoundsTab(host, organism, port, "compoundCounts_"+organism+".tab");
+//		CompoundCounts.printCompoundsTab(host, organism, port, "compoundCounts_"+organism+".tab");
 		
 		
 //		printCompoundsTab(organismCorn, "compoundCounts_CornCyc4.tab");
