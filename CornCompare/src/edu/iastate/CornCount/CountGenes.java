@@ -1,4 +1,4 @@
-package edu.iastate.CornCompare;
+package edu.iastate.CornCount;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,14 +8,14 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class GeneCounts extends Counter {
+public class CountGenes extends Counter {
 	private static String ptoolsClass = "|Genes|";
 	private JavacycConnection conn;
 	private String fileName;
 	private boolean verbose = false;
 	
 	
-	public GeneCounts(String host, String organism, int port, String fileName, boolean verbose) {
+	public CountGenes(String host, String organism, int port, String fileName, boolean verbose) {
 		conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		this.fileName = fileName;

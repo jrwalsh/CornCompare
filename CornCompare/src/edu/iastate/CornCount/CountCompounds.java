@@ -1,4 +1,4 @@
-package edu.iastate.CornCompare;
+package edu.iastate.CornCount;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,14 +8,14 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class CompoundCounts extends Counter {
+public class CountCompounds extends Counter {
 	private static String ptoolsClass = "|Compounds|";
 	private JavacycConnection conn;
 	private String fileName;
 	private boolean verbose = false;
 	
 	
-	public CompoundCounts(String host, String organism, int port, String fileName, boolean verbose) {
+	public CountCompounds(String host, String organism, int port, String fileName, boolean verbose) {
 		conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		this.fileName = fileName;
@@ -49,6 +49,7 @@ public class CompoundCounts extends Counter {
 		printString += "FrameID\tCommonName\tisClass?" + "\n";
 		for (Frame node : compoundNodes) {
 			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.isClassFrame() + "\t" + node.getSlotValue("Has-No-Structure?") + "\t" + node.getSlotValue("InChI") + "\t" + node.getComment() + "\n";
+//			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.getSlotValue("INCHI") + "\t" + node.isClassFrame() + "\n";
 		}
 		// Consider slots: Smiles, Non-Standard-InChI, DBLinks
 		// Consider reaction membership?

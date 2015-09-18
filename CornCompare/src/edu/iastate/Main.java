@@ -1,5 +1,6 @@
-package edu.iastate.CornCompare;
+package edu.iastate;
 
+import edu.iastate.CornCount.CountPathways;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
@@ -39,9 +40,9 @@ public class Main {
 //		ReactionCounts reactionCountsCorn = new ReactionCounts(host, organismCorn, port, "reactionCounts_Corn.tab", true);
 //		reactionCountsCorn.count();
 		
-		PathwayCounts pathwayCountsMaize = new PathwayCounts(host, organismMaize, port, "pathwayCounts_Maize.tab", true);
+		CountPathways pathwayCountsMaize = new CountPathways(host, organismMaize, port, "pathwayCounts_Maize.tab", true);
 		pathwayCountsMaize.count();
-		PathwayCounts pathwayCountsCorn = new PathwayCounts(host, organismCorn, port, "pathwayCounts_Corn.tab", true);
+		CountPathways pathwayCountsCorn = new CountPathways(host, organismCorn, port, "pathwayCounts_Corn.tab", true);
 		pathwayCountsCorn.count();
 		
 		

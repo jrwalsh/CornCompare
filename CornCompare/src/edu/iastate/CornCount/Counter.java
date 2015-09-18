@@ -1,8 +1,10 @@
-package edu.iastate.CornCompare;
+package edu.iastate.CornCount;
 
 import java.io.File;
 import java.io.PrintStream;
 
+import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public abstract class Counter  {
@@ -28,4 +30,16 @@ public abstract class Counter  {
 			System.exit(0);
 		}
 	}
+	
+	static private void printDirectSubs(JavacycConnection conn, Frame frame) {
+		try {
+			for (Object sub : conn.getClassDirectSubs(frame.getLocalID())) {
+				Frame.load(conn, sub.toString()).print();
+				printDirectSubs(conn, Frame.load(conn, sub.toString()));
+			}
+		} catch (PtoolsErrorException e) {
+			System.out.println("Didin't like : " + frame.getLocalID());
+		}
+	}
+		
 }

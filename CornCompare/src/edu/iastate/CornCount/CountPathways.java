@@ -1,4 +1,4 @@
-package edu.iastate.CornCompare;
+package edu.iastate.CornCount;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,14 +8,14 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class PathwayCounts extends Counter {
+public class CountPathways extends Counter {
 	private static String ptoolsClass = "|Pathways|";
 	private JavacycConnection conn;
 	private String fileName;
 	private boolean verbose = false;
 	
 	
-	public PathwayCounts(String host, String organism, int port, String fileName, boolean verbose) {
+	public CountPathways(String host, String organism, int port, String fileName, boolean verbose) {
 		conn = new JavacycConnection(host, port);
 		conn.selectOrganism(organism);
 		this.fileName = fileName;
@@ -34,6 +34,16 @@ public class PathwayCounts extends Counter {
 		for (Frame node : nodes) {
 			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.isClassFrame() + "\t" + node.isGFPClass("|Super-Pathways|") + "\n";
 		}
+		
+//		for (Frame node : nodes) {
+//			String reactionList = "";
+//			for (Object reaction : node.getSlotValues("Reaction-List")) {
+//				reactionList += reaction + ", ";
+//			}
+//			if (reactionList.length() > 0) reactionList = reactionList.substring(0, reactionList.length()-2);
+//			
+//			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.getSlotValue("Variants?") + "\t" + node.isGFPClass("|Super-Pathways|") + "\t" + node.isClassFrame() + "\t" + reactionList + "\n";
+//		}
 		
 		HashSet<String> classes = new HashSet<String>();
 		HashSet<String> supers = new HashSet<String>();
