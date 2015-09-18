@@ -24,16 +24,7 @@ public class GeneCounts extends Counter {
 	
 	@Override
 	public Counts count() throws PtoolsErrorException {
-		return null;
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public void getGeneCounts(String host, String organism, int port) throws PtoolsErrorException {
-		JavacycConnection conn = new JavacycConnection(host, port);
-		conn.selectOrganism(organism);
-		
-		System.out.println("Counting genes under the GFPtype " + ptoolsClass + " for the organism " + organism);
+		if (verbose) System.out.println("Counting genes under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network geneHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
 		Set<Frame> geneNodes = geneHierarchy.getNodes();
@@ -52,28 +43,24 @@ public class GeneCounts extends Counter {
 				geneUniqueInstances.add(gene.getCommonName().replaceAll("_P..$|_T..$", ""));
 			}
 		}
-		System.out.println("Gene Classes: " + geneClasses.size());
-		System.out.println("Gene Instances: " + geneInstances.size());
-		System.out.println("Gene Unique Classes without suffix: " + geneClasses.size());
-		System.out.println("Gene Unique Instances without suffix: " + geneUniqueInstances.size());
-	}
-	
-	public void printGenesTab(String host, String organism, int port, String fileName) throws PtoolsErrorException {
-		JavacycConnection conn = new JavacycConnection(host, port);
-		conn.selectOrganism(organism);
+		if (verbose) System.out.println("Gene Classes: " + geneClasses.size());
+		if (verbose) System.out.println("Gene Instances: " + geneInstances.size());
+		if (verbose) System.out.println("Gene Unique Classes without suffix: " + geneClasses.size());
+		if (verbose) System.out.println("Gene Unique Instances without suffix: " + geneUniqueInstances.size());
 		
-		System.out.println("Printing genes under the GFPtype " + ptoolsClass + " for the organism " + organism);
 		
-		Network hierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
-		Set<Frame> nodes = hierarchy.getNodes();
+		if (verbose) System.out.println("Printing genes under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		String printString = "";
 		printString += "FrameID\tCommonName\tisClass?" + "\n";
-		for (Frame node : nodes) {
+		for (Frame node : geneNodes) {
 			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.isClassFrame() + "\n";
 		}
 		
 		printString(fileName, printString);
+		
+		return null;
+		// TODO Auto-generated method stub
+		
 	}
-	
 }
