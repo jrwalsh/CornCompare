@@ -34,6 +34,7 @@ public class CountReactions extends Counter {
 		// consider node.getDirectSuperClasses()
 		for (Frame node : reactionNodes) {
 			printString += node.getLocalID() + "\t" + node.getCommonName() + "\t" + node.isClassFrame() + "\t" + node.getSlotValues("Enzymatic-Reaction").size() + "\t" + node.getSlotValue("Left") + "\t" + node.getSlotValue("Right") + "\t" + node.getSlotValue("In-Pathway") + "\n";
+			if (!node.isClassFrame()) System.out.println(node.getSlotValue("EC-NUMBER"));
 		}
 		
 //		for (Frame node : nodes) {

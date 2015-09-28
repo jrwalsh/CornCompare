@@ -24,6 +24,8 @@ public class CountEnzymaticReactions extends Counter {
 	
 	@Override
 	public Counts count() throws PtoolsErrorException {
+		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
+		
 		Network enzyRxnsHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
 		Set<Frame> enzyRxnNodes = enzyRxnsHierarchy.getNodes();
 		

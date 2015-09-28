@@ -24,30 +24,31 @@ public class CountGOAnnotations extends Counter {
 	
 	@Override
 	public Counts count() throws PtoolsErrorException {
-		//TODO what to count, exactly?  assignments? citations? unique or not? etc...
+		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
+		
 		Network pathwaysHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
 		Set<Frame> proteinNodes = pathwaysHierarchy.getNodes();
 		
-		
-//		HashSet<String> gotermAssignments = new HashSet<String>();
-//		HashSet<String> gotermCitations = new HashSet<String>();
+		HashSet<String> uniqueGoTerms = new HashSet<String>();
+		int gotermAssignments = 0;
+		int gotermCitations = 0;
 		for (Frame protein : proteinNodes) {
 			try {
-				System.out.println(protein.getLocalID());
 				for (Object goTerm : protein.getSlotValues("GO-TERMS")) {
-					System.out.println("\t"+goTerm.toString());
+					uniqueGoTerms.add(goTerm.toString());
+					gotermAssignments++;
 					for(Object citation : protein.getAnnotations("GO-TERMS", goTerm.toString(), "CITATIONS")) {
-						System.out.println("\t\t"+citation.toString());
+						gotermCitations++;
 					}
 				}
-//				if (protein.isClassFrame()) proteinClasses.add(protein.getLocalID());
-//				else proteinInstances.add(protein.getLocalID());
 			} catch (Exception e) {
 				System.out.println("Problem with protein : " + protein.getLocalID() + " : " + protein.isClassFrame());
 			}
 		}
-//		System.out.println("Protein Classes: " + proteinClasses.size());
-//		System.out.println("Protein Instances: " + proteinInstances.size());
+		
+		System.out.println("Unique GO Terms: " + uniqueGoTerms.size());
+		System.out.println("GO Term Assignments: " + gotermAssignments);
+		System.out.println("GO Term Citations: " + gotermCitations);
 		return new Counts();
 	}
 }

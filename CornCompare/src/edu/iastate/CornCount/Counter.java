@@ -31,7 +31,7 @@ public abstract class Counter  {
 		}
 	}
 	
-	static private void printDirectSubs(JavacycConnection conn, Frame frame) {
+	protected void printDirectSubs(JavacycConnection conn, Frame frame) {
 		try {
 			for (Object sub : conn.getClassDirectSubs(frame.getLocalID())) {
 				Frame.load(conn, sub.toString()).print();
