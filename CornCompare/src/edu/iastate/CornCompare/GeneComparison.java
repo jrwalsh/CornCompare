@@ -35,17 +35,6 @@ public class GeneComparison {
 			System.err.println("Failed to load all the " + ptoolsClass + " objects... aborting");
 			e.printStackTrace();
 		}
-		
-		
-//		geneListA.add(new GeneItem("frame1", "geneA"));
-//		geneListA.add(new GeneItem("frame2", "geneB"));
-//		geneListA.add(new GeneItem("frame3", "geneC"));
-//		geneListA.add(new GeneItem("frame4", "geneD"));
-//		
-//		geneListB.add(new GeneItem("frame5", "geneB"));
-//		geneListB.add(new GeneItem("frame6", "geneC"));
-//		geneListB.add(new GeneItem("frame7", "geneD"));
-//		geneListB.add(new GeneItem("frame8", "geneE"));
 	}
 	
 	public Comparison<GeneItem> compare() {
