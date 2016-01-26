@@ -50,8 +50,9 @@ public class CompoundComparison {
 		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
+		return null;
 		
-		return new Comparison<CompoundItem>(matched, uniqueListA, uniqueListB);
+//		return new Comparison<CompoundItem>(matched, uniqueListA, uniqueListB);
 	}
 	
 	private ArrayList<CompoundItem> LoadObjects() throws PtoolsErrorException {

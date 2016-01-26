@@ -54,8 +54,9 @@ public class GeneComparison {
 		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
+		return null;
 		
-		return new Comparison<GeneItem>(matched, uniqueListA, uniqueListB);
+//		return new Comparison<GeneItem>(matched, uniqueListA, uniqueListB);
 	}
 	
 	private ArrayList<GeneItem> LoadObjects() throws PtoolsErrorException {
