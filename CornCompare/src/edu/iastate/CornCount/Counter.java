@@ -10,7 +10,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
 public abstract class Counter  {
 	
 	
-	public abstract Counts count() throws PtoolsErrorException;
+	public abstract CountedFrames count() throws PtoolsErrorException;
 	
 	/**
 	 * Simple function to print a string to the specified file location.

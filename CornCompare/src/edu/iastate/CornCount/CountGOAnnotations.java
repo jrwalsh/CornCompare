@@ -23,7 +23,7 @@ public class CountGOAnnotations extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network pathwaysHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
@@ -49,6 +49,6 @@ public class CountGOAnnotations extends Counter {
 		System.out.println("Unique GO Terms: " + uniqueGoTerms.size());
 		System.out.println("GO Term Assignments: " + gotermAssignments);
 		System.out.println("GO Term Citations: " + gotermCitations);
-		return new Counts();
+		return new CountedFrames();
 	}
 }

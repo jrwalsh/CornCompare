@@ -54,9 +54,9 @@ public class GeneComparison {
 		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
-		return null;
+//		return null;
 		
-//		return new Comparison<GeneItem>(matched, uniqueListA, uniqueListB);
+		return new Comparison<GeneItem>(new ArrayList<GeneItem>(), new ArrayList<GeneItem>(), new ArrayList<GeneItem>(), matched, uniqueListA, uniqueListB);
 	}
 	
 	private ArrayList<GeneItem> LoadObjects() throws PtoolsErrorException {
@@ -66,7 +66,8 @@ public class GeneComparison {
 		ArrayList<GeneItem> list = new ArrayList<GeneItem>();
 		
 		for (Frame node : nodes) {
-			if (!node.isClassFrame()) list.add(new GeneItem(node.getLocalID(), node.getCommonName().replaceAll("_P..$|_T..$", "")));
+			if (!node.isClassFrame()) list.add(new GeneItem(node.getLocalID(), node.getCommonName())); // Consider transcripts
+//			if (!node.isClassFrame()) list.add(new GeneItem(node.getLocalID(), node.getCommonName().replaceAll("_P..$|_T..$", ""))); // Consider genes by removing transcript info
 		}
 		
 		return list;

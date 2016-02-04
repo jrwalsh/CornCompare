@@ -23,7 +23,7 @@ public class CountCompounds extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting compounds under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network compoundHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);

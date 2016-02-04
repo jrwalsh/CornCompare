@@ -4,14 +4,11 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 import edu.iastate.CornCompare.Comparison;
-import edu.iastate.CornCompare.CompoundComparison;
-import edu.iastate.CornCompare.CompoundItem;
 import edu.iastate.CornCompare.GeneComparison;
 import edu.iastate.CornCompare.GeneItem;
-import edu.iastate.CornCompare.PathwayComparison;
-import edu.iastate.CornCompare.PathwayItem;
 import edu.iastate.CornCompare.ReactionComparison;
 import edu.iastate.CornCompare.ReactionItem;
 import edu.iastate.CornCount.CountCompounds;
@@ -22,7 +19,10 @@ import edu.iastate.CornCount.CountPathways;
 import edu.iastate.CornCount.CountProteins;
 import edu.iastate.CornCount.CountReactions;
 import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
+import edu.iastate.javacyco.Network;
+import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class Main {
@@ -35,15 +35,9 @@ public class Main {
 		try {
 			Long start = System.currentTimeMillis();
 			
+//			test();
 //			count();
 			compare();
-			
-//			JavacycConnection conn = new JavacycConnection(host, port);
-//			conn.selectOrganism(organismMaize);
-//			for (Frame item : conn.getAllGFPInstances("|Transport-Reactions|")) {
-//				System.out.println(item.getLocalID() + " : is tranport? " + item.isGFPClass("|Transport-Reactions|"));
-//			}
-			
 			
 			Long stop = System.currentTimeMillis();
 			Long runtime = (stop - start) / 1000;
@@ -55,6 +49,18 @@ public class Main {
 		}
 	}
 	
+	
+	private static void test() throws PtoolsErrorException {
+		JavacycConnection conn = new JavacycConnection(host, port);
+		conn.selectOrganism(organismCorn);
+		ArrayList<Frame> frames = conn.search("GRMZM5G896883_P0", Protein.GFPtype);
+		for (Frame frame : frames) {
+			frame.print();
+		}
+		
+	}
+
+
 	static private void count() throws PtoolsErrorException {
 		CountCompounds compoundCountsMaize = new CountCompounds(host, organismMaize, port, "compoundCounts_Maize.tab", true);
 		compoundCountsMaize.count();
@@ -98,21 +104,22 @@ public class Main {
 	
 	static private void compare() throws PtoolsErrorException {
 		// Convert Comparison lists to sets in order to count overlap, otherwise it gives all frames involved in the overlap
-//		GeneComparison geneCompare = new GeneComparison(host, organismMaize, organismCorn, port, "geneCompare.tab", true);
-//		Comparison<GeneItem> geneComparison = geneCompare.compare();
+		GeneComparison geneCompare = new GeneComparison(host, organismMaize, organismCorn, port, "geneCompare.tab", true);
+		Comparison<GeneItem> geneComparison = geneCompare.compare();
+		testOutputGene(geneComparison);
 //		
 //		CompoundComparison compoundCompare = new CompoundComparison(host, organismMaize, organismCorn, port, "compoundCompare.tab", true);
 //		Comparison<CompoundItem> compoundComparison = compoundCompare.compare();
 		
 		
 		// ---------- Do reaction Comparison -----------
-		ReactionComparison reactionCompare = new ReactionComparison(host, organismMaize, organismCorn, port, "reactionCompare.tab", true);
-		
-		System.out.println("Comparing by FrameID");
-		Comparison<String> reactionComparisonOnFrameID = reactionCompare.compareByFrameID();
-		System.out.println("Matching Frames: " + reactionComparisonOnFrameID.matchedClasses.size() + " Classes and " + reactionComparisonOnFrameID.matchedInstances.size() + " Instances");
-		System.out.println("Frames in A only: " + reactionComparisonOnFrameID.uniqueClassesA.size() + " Classes and " + reactionComparisonOnFrameID.uniqueInstancesA.size() + " Instances");
-		System.out.println("Frames in B only: " + reactionComparisonOnFrameID.uniqueClassesB.size() + " Classes and " + reactionComparisonOnFrameID.uniqueInstancesB.size() + " Instances");
+//		ReactionComparison reactionCompare = new ReactionComparison(host, organismMaize, organismCorn, port, "reactionCompare.tab", true);
+//		
+//		System.out.println("Comparing by FrameID");
+//		Comparison<String> reactionComparisonOnFrameID = reactionCompare.compareByFrameID();
+//		System.out.println("Matching Frames: " + reactionComparisonOnFrameID.matchedClasses.size() + " Classes and " + reactionComparisonOnFrameID.matchedInstances.size() + " Instances");
+//		System.out.println("Frames in A only: " + reactionComparisonOnFrameID.uniqueClassesA.size() + " Classes and " + reactionComparisonOnFrameID.uniqueInstancesA.size() + " Instances");
+//		System.out.println("Frames in B only: " + reactionComparisonOnFrameID.uniqueClassesB.size() + " Classes and " + reactionComparisonOnFrameID.uniqueInstancesB.size() + " Instances");
 		
 //		System.out.println("Comparing by data (common name)");
 //		Comparison<ReactionItem> reactionComparisonOnData = reactionCompare.compareByData();
@@ -144,6 +151,18 @@ public class Main {
 //		for (String item : pathwayComparisonOnFrameID.uniqueInstancesA) System.out.println(item);
 //		for (String item : pathwayComparisonOnFrameID.uniqueInstancesB) System.out.println(item);
 //		// --------------------------------------------
+	}
+	
+	static private void testOutputGene(Comparison<GeneItem> comparison) {
+		HashSet<Object> matched = new HashSet<Object>();
+		matched.addAll(comparison.matchedInstances);
+		HashSet<Object> uniqueListA = new HashSet<Object>();
+		uniqueListA.addAll(comparison.uniqueInstancesA);
+		HashSet<Object> uniqueListB = new HashSet<Object>();
+		uniqueListB.addAll(comparison.uniqueInstancesB);
+		System.out.println("Matching Frames: " + comparison.matchedInstances.size() + " : (" + matched.size() + " unique)");
+		System.out.println("Frames in A: " + comparison.uniqueInstancesA.size() + " : (" + uniqueListA.size() + " unique)");
+		System.out.println("Frames in B: " + comparison.uniqueInstancesB.size() + " : (" + uniqueListB.size() + " unique)");
 	}
 	
 	static private void testOutput(Comparison<ReactionItem> comparison) {

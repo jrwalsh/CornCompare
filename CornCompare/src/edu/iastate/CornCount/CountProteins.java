@@ -23,7 +23,7 @@ public class CountProteins extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network pathwaysHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
@@ -42,6 +42,28 @@ public class CountProteins extends Counter {
 		
 		System.out.println("Protein Classes: " + proteinClasses.size());
 		System.out.println("Protein Instances: " + proteinInstances.size());
-		return new Counts();
+		return new CountedFrames();
+	}
+	
+	private void countProteinsWithAnnotations() throws PtoolsErrorException {
+		Network hierarchy = conn.getClassHierarchy("|Polypeptides|", true, true);
+		Set<Frame> nodes = hierarchy.getNodes();
+		
+		int countGood = 0;
+		int countBad = 0;
+		int countClass = 0;
+		System.out.println(nodes.size());
+		for (Frame node : nodes) {
+			if (node.isClassFrame()) {
+				countClass++;
+			}
+			else {
+				if (!node.getSlotValues("CATALYZES").isEmpty() || !node.getSlotValues("GO-TERMS").isEmpty()) countGood++;
+				else {
+					countBad++;
+				}
+			}
+		}
+		System.out.println("CountGood = " + countGood + "\nCountBad = " + countBad + "\nCountClass = " + countClass + "\n");
 	}
 }

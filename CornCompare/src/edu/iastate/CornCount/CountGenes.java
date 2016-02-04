@@ -1,5 +1,6 @@
 package edu.iastate.CornCount;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +24,7 @@ public class CountGenes extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting genes under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network geneHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
@@ -61,6 +62,44 @@ public class CountGenes extends Counter {
 		
 		return null;
 		// TODO Auto-generated method stub
+		
+	}
+	
+	private void countGenesWithAnnotations() throws PtoolsErrorException {
+		Network geneHierarchy = conn.getClassHierarchy("|Genes|", true, true);
+		Set<Frame> geneNodes = geneHierarchy.getNodes();
+		
+		int countGood = 0;
+		boolean foundGood = false;
+		int countBad = 0;
+		int countClass = 0;
+		System.out.println(geneNodes.size());
+		for (Frame gene : geneNodes) {
+			if (gene.isClassFrame()) {
+				countClass++;
+			}
+			else {
+				ArrayList<String> productsOfGene = conn.allProductsOfGene(gene.getLocalID());
+				for (String productID : productsOfGene) {
+					Frame product = Frame.load(conn, productID);
+					if (!product.getSlotValues("CATALYZES").isEmpty() || !product.getSlotValues("GO-TERMS").isEmpty()) {
+						foundGood = true;
+						break;
+					}
+				}
+				if (foundGood) {
+					countGood++;
+					foundGood = false;
+				}
+				else countBad++;
+			}
+		}
+		System.out.println("CountGood = " + countGood + "\nCountBad = " + countBad + "\nCountClass = " + countClass + "\n");
+		
+//		Frame.load(conn,  "GBWI-49667").print(); // "Good gene"
+//		Frame.load(conn,  "GBWI-49667-MONOMER").print(); //
+//		Frame.load(conn,  "GBWI-82150").print(); // "Empty gene"
+//		Frame.load(conn,  "GBWI-82150-MONOMER").print();
 		
 	}
 }

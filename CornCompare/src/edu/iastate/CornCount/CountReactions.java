@@ -23,7 +23,7 @@ public class CountReactions extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		String printString = "";
 		printString += "FrameID\tCommonName\tisClass?\tNumberEnzymaticReactions" + "\n";
@@ -69,6 +69,6 @@ public class CountReactions extends Counter {
 		if (verbose) System.out.println("Instances: " + reactionInstances.size());
 		
 		if (fileName.length() > 0) printString(fileName, printString);
-		return new Counts();
+		return new CountedFrames();
 	}
 }

@@ -23,7 +23,7 @@ public class CountEnzymaticReactions extends Counter {
 	}
 	
 	@Override
-	public Counts count() throws PtoolsErrorException {
+	public CountedFrames count() throws PtoolsErrorException {
 		if (verbose) System.out.println("Counting objects under the GFPtype " + ptoolsClass + " for the organism " + conn.getOrganism().getLocalID());
 		
 		Network enzyRxnsHierarchy = conn.getClassHierarchy(ptoolsClass, true, true);
@@ -38,6 +38,6 @@ public class CountEnzymaticReactions extends Counter {
 		System.out.println("Enzymatic-Reactions Classes: " + enzyRxnClasses.size());
 		System.out.println("Enzymatic-Reactions Instances: " + enzyRxnInstances.size());
 		
-		return new Counts();
+		return new CountedFrames();
 	}
 }
