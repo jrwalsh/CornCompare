@@ -26,18 +26,21 @@ import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class Main {
-	private static String host = "jrwalsh-server.student.iastate.edu";
-	private static String organismCorn = "CORN";
-	private static String organismMaize = "MAIZE";
-	private static int port = 4444;
-	
 	public static void main(String[] args) {
 		try {
 			Long start = System.currentTimeMillis();
 			
+			// Process input
+			String host = "jrwalsh-server.student.iastate.edu";
+			int port = 4444;
+			String organismCorn = "CORN";
+			String organismMaize = "MAIZE";
+			boolean verbose = true;
+			
+			// Run program
 //			test();
-//			count();
-			compare();
+			initiateFileStructure();
+			run(host, organismCorn, organismMaize, port, verbose);
 			
 			Long stop = System.currentTimeMillis();
 			Long runtime = (stop - start) / 1000;
@@ -49,64 +52,89 @@ public class Main {
 		}
 	}
 	
+	private static void initiateFileStructure() {
+        System.out.print("Testing file structure...");
+        File file = new File("Genes\\Transcripts\\test.txt");
+        file.getParentFile().mkdirs();
+
+        file = new File("Proteins\\test.txt");
+        file.getParentFile().mkdirs();
+        System.out.println(" done");
+	}
 	
+	private static void run(String host, String organismCorn, String organismMaize, int port, boolean verbose) {
+		GeneComparison geneCompare = new GeneComparison(host, organismCorn, organismMaize, port, "geneCompare.tab", verbose);
+		geneCompare.compare(false);
+		geneCompare.compare(true);
+		
+	}
+
+
 	private static void test() throws PtoolsErrorException {
-		JavacycConnection conn = new JavacycConnection(host, port);
-		conn.selectOrganism(organismCorn);
-		ArrayList<Frame> frames = conn.search("GRMZM5G896883_P0", Protein.GFPtype);
+		JavacycConnection conn = new JavacycConnection("jrwalsh-server.student.iastate.edu", 4444);
+		conn.selectOrganism("CORN");
+		ArrayList<Frame> frames = conn.search("_FG", Gene.GFPtype);
 		for (Frame frame : frames) {
-			frame.print();
+			if (!frame.getCommonName().contains("_FGT")) System.out.println(frame.getCommonName());  
+//			System.out.println(frame.getCommonName());
+			String itemGeneID = frame.getCommonName();
+			itemGeneID = itemGeneID.replaceAll("_P..$", ""); //Remove _P## suffixs, which indicate this is a transcript
+			itemGeneID = itemGeneID.replaceAll("_T..$", ""); //Remove _T## suffixs, which also indicate this is a transcript
+			itemGeneID = itemGeneID.replaceAll("_FGP...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
+			itemGeneID = itemGeneID.replaceAll("_FGT...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
+//			itemGeneID = itemGeneID.replaceAll("_FG...$", ""); //Having manually looked at the IDs, only one gene has an _FG number, so removing it isn't necessary
+//			System.out.println(itemGeneID);
 		}
-		
+		System.out.println("Test done");
 	}
 
 
-	static private void count() throws PtoolsErrorException {
-		CountCompounds compoundCountsMaize = new CountCompounds(host, organismMaize, port, "compoundCounts_Maize.tab", true);
-		compoundCountsMaize.count();
-		CountCompounds compoundCountsCorn = new CountCompounds(host, organismCorn, port, "compoundCounts_Corn.tab", true);
-		compoundCountsCorn.count();
-		
-		
-		CountGenes geneCountsMaize = new CountGenes(host, organismMaize, port, "geneCounts_Maize.tab", true);
-		geneCountsMaize.count();
-		CountGenes geneCountsCorn = new CountGenes(host, organismCorn, port, "geneCounts_Corn.tab", true);
-		geneCountsCorn.count();
-		
-		CountReactions reactionCountsMaize = new CountReactions(host, organismMaize, port, "reactionCounts_Maize.tab", true);
-		reactionCountsMaize.count();
-		CountReactions reactionCountsCorn = new CountReactions(host, organismCorn, port, "reactionCounts_Corn.tab", true);
-		reactionCountsCorn.count();
-		
-		CountPathways pathwayCountsMaize = new CountPathways(host, organismMaize, port, "pathwayCounts_Maize.tab", true);
-		pathwayCountsMaize.count();
-		CountPathways pathwayCountsCorn = new CountPathways(host, organismCorn, port, "pathwayCounts_Corn.tab", true);
-		pathwayCountsCorn.count();
-		
-		
-		CountEnzymaticReactions enzyRxnCountsMaize = new CountEnzymaticReactions(host, organismMaize, port, "enzyRxnCounts_Maize.tab", true);
-		enzyRxnCountsMaize.count();
-		CountEnzymaticReactions enzyRxnCountsCorn = new CountEnzymaticReactions(host, organismCorn, port, "enzyRxnCounts_Corn.tab", true);
-		enzyRxnCountsCorn.count();
-		
-		
-		CountGOAnnotations GOAnnotationsCountsMaize = new CountGOAnnotations(host, organismMaize, port, "GOAnnotationCounts_Maize.tab", true);
-		GOAnnotationsCountsMaize.count();
-		CountGOAnnotations GOAnnotationsCountsCorn = new CountGOAnnotations(host, organismCorn, port, "GOAnnotationCounts_Corn.tab", true);
-		GOAnnotationsCountsCorn.count();
-		
-		
-		CountProteins proteinCountsMaize = new CountProteins(host, organismMaize, port, "proteinCounts_Maize.tab", true);
-		proteinCountsMaize.count();
-		CountProteins proteinCountsCorn = new CountProteins(host, organismCorn, port, "proteinCounts_Corn.tab", true);
-		proteinCountsCorn.count();
-	}
+//	static private void count() throws PtoolsErrorException {
+//		CountCompounds compoundCountsMaize = new CountCompounds(host, organismMaize, port, "compoundCounts_Maize.tab", true);
+//		compoundCountsMaize.count();
+//		CountCompounds compoundCountsCorn = new CountCompounds(host, organismCorn, port, "compoundCounts_Corn.tab", true);
+//		compoundCountsCorn.count();
+//		
+//		
+//		CountGenes geneCountsMaize = new CountGenes(host, organismMaize, port, "geneCounts_Maize.tab", true);
+//		geneCountsMaize.count();
+//		CountGenes geneCountsCorn = new CountGenes(host, organismCorn, port, "geneCounts_Corn.tab", true);
+//		geneCountsCorn.count();
+//		
+//		CountReactions reactionCountsMaize = new CountReactions(host, organismMaize, port, "reactionCounts_Maize.tab", true);
+//		reactionCountsMaize.count();
+//		CountReactions reactionCountsCorn = new CountReactions(host, organismCorn, port, "reactionCounts_Corn.tab", true);
+//		reactionCountsCorn.count();
+//		
+//		CountPathways pathwayCountsMaize = new CountPathways(host, organismMaize, port, "pathwayCounts_Maize.tab", true);
+//		pathwayCountsMaize.count();
+//		CountPathways pathwayCountsCorn = new CountPathways(host, organismCorn, port, "pathwayCounts_Corn.tab", true);
+//		pathwayCountsCorn.count();
+//		
+//		
+//		CountEnzymaticReactions enzyRxnCountsMaize = new CountEnzymaticReactions(host, organismMaize, port, "enzyRxnCounts_Maize.tab", true);
+//		enzyRxnCountsMaize.count();
+//		CountEnzymaticReactions enzyRxnCountsCorn = new CountEnzymaticReactions(host, organismCorn, port, "enzyRxnCounts_Corn.tab", true);
+//		enzyRxnCountsCorn.count();
+//		
+//		
+//		CountGOAnnotations GOAnnotationsCountsMaize = new CountGOAnnotations(host, organismMaize, port, "GOAnnotationCounts_Maize.tab", true);
+//		GOAnnotationsCountsMaize.count();
+//		CountGOAnnotations GOAnnotationsCountsCorn = new CountGOAnnotations(host, organismCorn, port, "GOAnnotationCounts_Corn.tab", true);
+//		GOAnnotationsCountsCorn.count();
+//		
+//		
+//		CountProteins proteinCountsMaize = new CountProteins(host, organismMaize, port, "proteinCounts_Maize.tab", true);
+//		proteinCountsMaize.count();
+//		CountProteins proteinCountsCorn = new CountProteins(host, organismCorn, port, "proteinCounts_Corn.tab", true);
+//		proteinCountsCorn.count();
+//	}
 	
-	static private void compare() throws PtoolsErrorException {
+//	static private void compare() throws PtoolsErrorException {
 		// Convert Comparison lists to sets in order to count overlap, otherwise it gives all frames involved in the overlap
-		GeneComparison geneCompare = new GeneComparison(host, organismMaize, organismCorn, port, "geneCompare.tab", true);
-		Comparison<GeneItem> geneComparison = geneCompare.compare();
-		testOutputGene(geneComparison);
+//		GeneComparison geneCompare = new GeneComparison(host, organismMaize, organismCorn, port, "geneCompare.tab", true);
+//		Comparison<GeneItem> geneComparison = geneCompare.compare();
+//		testOutputGene(geneComparison);
 //		
 //		CompoundComparison compoundCompare = new CompoundComparison(host, organismMaize, organismCorn, port, "compoundCompare.tab", true);
 //		Comparison<CompoundItem> compoundComparison = compoundCompare.compare();
@@ -151,21 +179,21 @@ public class Main {
 //		for (String item : pathwayComparisonOnFrameID.uniqueInstancesA) System.out.println(item);
 //		for (String item : pathwayComparisonOnFrameID.uniqueInstancesB) System.out.println(item);
 //		// --------------------------------------------
-	}
+//	}
 	
-	static private void testOutputGene(Comparison<GeneItem> comparison) {
-		HashSet<Object> matched = new HashSet<Object>();
-		matched.addAll(comparison.matchedInstances);
-		HashSet<Object> uniqueListA = new HashSet<Object>();
-		uniqueListA.addAll(comparison.uniqueInstancesA);
-		HashSet<Object> uniqueListB = new HashSet<Object>();
-		uniqueListB.addAll(comparison.uniqueInstancesB);
-		System.out.println("Matching Frames: " + comparison.matchedInstances.size() + " : (" + matched.size() + " unique)");
-		System.out.println("Frames in A: " + comparison.uniqueInstancesA.size() + " : (" + uniqueListA.size() + " unique)");
-		System.out.println("Frames in B: " + comparison.uniqueInstancesB.size() + " : (" + uniqueListB.size() + " unique)");
-	}
+//	static private void testOutputGene(Comparison<GeneItem> comparison) {
+//		HashSet<Object> matched = new HashSet<Object>();
+//		matched.addAll(comparison.matchedInstances);
+//		HashSet<Object> uniqueListA = new HashSet<Object>();
+//		uniqueListA.addAll(comparison.uniqueInstancesA);
+//		HashSet<Object> uniqueListB = new HashSet<Object>();
+//		uniqueListB.addAll(comparison.uniqueInstancesB);
+//		System.out.println("Matching Frames: " + comparison.matchedInstances.size() + " : (" + matched.size() + " unique)");
+//		System.out.println("Frames in A: " + comparison.uniqueInstancesA.size() + " : (" + uniqueListA.size() + " unique)");
+//		System.out.println("Frames in B: " + comparison.uniqueInstancesB.size() + " : (" + uniqueListB.size() + " unique)");
+//	}
 	
-	static private void testOutput(Comparison<ReactionItem> comparison) {
+//	static private void testOutput(Comparison<ReactionItem> comparison) {
 		// Test Output
 //		System.out.println("Matched:");
 //		for (Object item : comparison.matched) {
@@ -189,26 +217,26 @@ public class Main {
 //		System.out.println("Matching Frames: " + comparison.matched.size() + " : (" + matched.size() + " unique)");
 //		System.out.println("Frames in A: " + comparison.uniqueListA.size() + " : (" + uniqueListA.size() + " unique)");
 //		System.out.println("Frames in B: " + comparison.uniqueListB.size() + " : (" + uniqueListB.size() + " unique)");
-	}
+//	}
 	
-	protected static String arrayToString(ArrayList array) {
-		String out = "";
-		for (Object item : array) {
-			out += item + "\n";
-		}
-		return out;
-	}
+//	protected static String arrayToString(ArrayList array) {
+//		String out = "";
+//		for (Object item : array) {
+//			out += item + "\n";
+//		}
+//		return out;
+//	}
 	
-	protected static void printString(String fileName, String printString) {
-		PrintStream o = null;
-		try {
-			o = new PrintStream(new File(fileName));
-			o.println(printString);
-			o.close();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-	}
+//	protected static void printString(String fileName, String printString) {
+//		PrintStream o = null;
+//		try {
+//			o = new PrintStream(new File(fileName));
+//			o.println(printString);
+//			o.close();
+//		}
+//		catch(Exception e) {
+//			e.printStackTrace();
+//			System.exit(0);
+//		}
+//	}
 }
