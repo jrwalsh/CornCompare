@@ -131,10 +131,10 @@ public class GeneComparison {
 		// reaction catalyzing gene product.
 		int countNoAnnotation = 0;
 		Set<GeneItem> tempRemoveMissingAnnotationSet = new HashSet<GeneItem>();
-		for (GeneItem gene : tempRemoveDuplicateSet) {
+		for (GeneItem item : tempRemoveDuplicateSet) {
 			boolean foundGood = false;
 			try {
-				ArrayList<String> productsOfGene = conn.allProductsOfGene(gene.frameID);
+				ArrayList<String> productsOfGene = conn.allProductsOfGene(item.frameID);
 				for (String productID : productsOfGene) {
 					Frame product = Frame.load(conn, productID);
 					if (!product.getSlotValues("CATALYZES").isEmpty() || !product.getSlotValues("GO-TERMS").isEmpty()) {
@@ -148,13 +148,13 @@ public class GeneComparison {
 				foundGood = false;
 			}
 			if (foundGood) {
-				tempRemoveMissingAnnotationSet.add(gene);
+				tempRemoveMissingAnnotationSet.add(item);
 				foundGood = false;
 			}
 			else {
 				if (verbose) {
-//					System.out.println("Removing " + gene.frameID + ": no annotation");
-					appendLine(logFile, "Removing " + gene.frameID + ": no annotation"+"\n");
+//					System.out.println("Removing " + item.frameID + " - " + item.comparableField + ": no annotation");
+					appendLine(logFile, "Removing " + item.frameID + " - " + item.comparableField + ": no annotation"+"\n");
 					countNoAnnotation++;
 				}
 			}
@@ -188,6 +188,7 @@ public class GeneComparison {
 			}
 		} else {
 			// Skip the step of filtering out transcripts
+			//TODO i might need to replace any _P## with an _T## to make them consistent and therefore matchable
 			processedList = tempRemoveMissingAnnotationSet;
 		}
 		
@@ -227,11 +228,11 @@ public class GeneComparison {
 			e.printStackTrace();
 		}
 		
-		String matchSetOutput = organismA + "\t" + organismB + "\n";
+		String matchSetOutput = organismA + "\t\t" + organismB + "\t\n";
 		for (GeneItem item : uniqueListA) {
 			if (setB.containsValue(item)) {
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + setB.get(item).frameID;
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
 			}
 		}
 //		for (GeneItem item : uniqueListB) {
@@ -253,11 +254,11 @@ public class GeneComparison {
 		
 		// Print matching results
 		if (includeTranscripts) {
-			printSet("Genes\\Transcripts\\Matching_"+organismA+"_vs_"+organismB+".tab", "ClassFrames", matched);
+			printString("Genes\\Transcripts\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
 			printSet("Genes\\Transcripts\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
 			printSet("Genes\\Transcripts\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
 		} else {
-			printSet("Genes\\Matching_"+organismA+"_vs_"+organismB+".tab", "ClassFrames", matched);
+			printString("Genes\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
 			printSet("Genes\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
 			printSet("Genes\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
 		}
@@ -301,29 +302,19 @@ public class GeneComparison {
 		}
 	}
 	
+	protected void printSet(String fileName, String columnName, Set<GeneItem> set) {
+		ArrayList<GeneItem> list = new ArrayList<GeneItem>();
+		list.addAll(set);
+		printSet(fileName, columnName, list);
+	}
+	
 	protected void printSet(String fileName, String columnName, ArrayList<GeneItem> set) {
 		PrintStream o = null;
 		try {
 			o = new PrintStream(new File(fileName));
 			o.println(columnName);
 			for (GeneItem item : set) {
-				o.println(item.frameID);
-			}
-			o.close();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-	}
-	
-	protected void printSet(String fileName, String columnName, Set<GeneItem> set) {
-		PrintStream o = null;
-		try {
-			o = new PrintStream(new File(fileName));
-			o.println(columnName);
-			for (GeneItem item : set) {
-				o.println(item.frameID);
+				o.println(item.frameID + "\t" + item.comparableField);
 			}
 			o.close();
 		}

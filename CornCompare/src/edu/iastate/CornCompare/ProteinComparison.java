@@ -26,7 +26,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
  *
  */
 public class ProteinComparison {
-	private final String ptoolsClass = "|Proteins|";
+	private final String ptoolsClass = "|Proteins|"; //TODO |Polypeptides| or |Proteins|?
 	private JavacycConnection conn;
 	private String fileName;
 	private boolean verbose;
@@ -136,6 +136,8 @@ public class ProteinComparison {
 			appendLine(logFile, "Removed a total of " + countNoAnnotation + " objects due to no annotation"+"\n");
 		}
 		
+		//TODO i might need to replace any _T## with an _P## to make them consistent and therefore matchable
+		
 		// Print the sorted and processed lists
 		printSet("Proteins\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
 		printSet("Proteins\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
@@ -168,7 +170,7 @@ public class ProteinComparison {
 		for (ProteinItem item : uniqueListA) {
 			if (setB.containsValue(item)) {
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + setB.get(item).frameID;
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
 			}
 		}
 //		for (ProteinItem item : uniqueListB) {
@@ -189,7 +191,7 @@ public class ProteinComparison {
 		}
 		
 		// Print matching results
-		printSet("Proteins\\Matching_"+organismA+"_vs_"+organismB+".tab", "ClassFrames", matched);
+		printString("Proteins\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
 		printSet("Proteins\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
 		printSet("Proteins\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
 	}
@@ -232,29 +234,19 @@ public class ProteinComparison {
 		}
 	}
 	
+	protected void printSet(String fileName, String columnName, Set<ProteinItem> set) {
+		ArrayList<ProteinItem> list = new ArrayList<ProteinItem>();
+		list.addAll(set);
+		printSet(fileName, columnName, list);
+	}
+	
 	protected void printSet(String fileName, String columnName, ArrayList<ProteinItem> set) {
 		PrintStream o = null;
 		try {
 			o = new PrintStream(new File(fileName));
 			o.println(columnName);
 			for (ProteinItem item : set) {
-				o.println(item.frameID);
-			}
-			o.close();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-	}
-	
-	protected void printSet(String fileName, String columnName, Set<ProteinItem> set) {
-		PrintStream o = null;
-		try {
-			o = new PrintStream(new File(fileName));
-			o.println(columnName);
-			for (ProteinItem item : set) {
-				o.println(item.frameID);
+				o.println(item.frameID + "\t" + item.comparableField);
 			}
 			o.close();
 		}
