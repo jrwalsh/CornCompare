@@ -1,17 +1,15 @@
 package edu.iastate.CornCompare;
 
-import java.util.ArrayList;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class PathwayItem {
-	public ArrayList<String> frameID = new ArrayList<String>();
+	public String frameID;
 	public String comparableField;
-	
-	// ComparableField in the case for reactions is expected to be the ???
+
+	// ComparableField in the case for pathways is expected to be the frameID
 	public PathwayItem (String frameID, String comparableField) {
-		this.frameID.add(frameID);
+		this.frameID = frameID;
 		this.comparableField = comparableField;
 	}
 	
@@ -34,10 +32,6 @@ public class PathwayItem {
             append(comparableField, rhs.comparableField).
             isEquals();
     }
-    
-    public void addFrameID(String frameID) {
-		this.frameID.add(frameID);
-	}
     
     @Override
     public String toString() {
