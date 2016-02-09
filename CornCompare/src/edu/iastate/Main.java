@@ -2,27 +2,11 @@ package edu.iastate;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
-import edu.iastate.CornCompare.Comparison;
+import edu.iastate.CornCompare.CompoundComparison;
 import edu.iastate.CornCompare.GeneComparison;
-import edu.iastate.CornCompare.GeneItem;
+import edu.iastate.CornCompare.PathwayComparison;
+import edu.iastate.CornCompare.ProteinComparison;
 import edu.iastate.CornCompare.ReactionComparison;
-import edu.iastate.CornCompare.ReactionItem;
-import edu.iastate.CornCount.CountCompounds;
-import edu.iastate.CornCount.CountEnzymaticReactions;
-import edu.iastate.CornCount.CountGOAnnotations;
-import edu.iastate.CornCount.CountGenes;
-import edu.iastate.CornCount.CountPathways;
-import edu.iastate.CornCount.CountProteins;
-import edu.iastate.CornCount.CountReactions;
-import edu.iastate.javacyco.Frame;
-import edu.iastate.javacyco.Gene;
-import edu.iastate.javacyco.JavacycConnection;
-import edu.iastate.javacyco.Network;
-import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class Main {
@@ -59,6 +43,15 @@ public class Main {
 
         file = new File("Proteins\\test.txt");
         file.getParentFile().mkdirs();
+        
+        file = new File("Compounds\\test.txt");
+        file.getParentFile().mkdirs();
+        
+        file = new File("Reactions\\test.txt");
+        file.getParentFile().mkdirs();
+        
+        file = new File("Pathways\\test.txt");
+        file.getParentFile().mkdirs();
         System.out.println(" done");
 	}
 	
@@ -67,25 +60,64 @@ public class Main {
 		geneCompare.compare(false);
 		geneCompare.compare(true);
 		
+		ProteinComparison proteinCompare = new ProteinComparison(host, organismCorn, organismMaize, port, "proteinCompare.tab", verbose);
+		proteinCompare.compare();
+		
+		CompoundComparison compoundCompare = new CompoundComparison(host, organismCorn, organismMaize, port, "compoundCompare.tab", verbose);
+		compoundCompare.compare();
+		
+		ReactionComparison reactionCompare = new ReactionComparison(host, organismCorn, organismMaize, port, "compoundCompare.tab", verbose);
+		reactionCompare.compare();
+		
+		PathwayComparison pathwayCompare = new PathwayComparison(host, organismCorn, organismMaize, port, "compoundCompare.tab", verbose);
+		pathwayCompare.compare();
 	}
 
 
 	private static void test() throws PtoolsErrorException {
-		JavacycConnection conn = new JavacycConnection("jrwalsh-server.student.iastate.edu", 4444);
-		conn.selectOrganism("CORN");
-		ArrayList<Frame> frames = conn.search("_FG", Gene.GFPtype);
-		for (Frame frame : frames) {
-			if (!frame.getCommonName().contains("_FGT")) System.out.println(frame.getCommonName());  
-//			System.out.println(frame.getCommonName());
-			String itemGeneID = frame.getCommonName();
-			itemGeneID = itemGeneID.replaceAll("_P..$", ""); //Remove _P## suffixs, which indicate this is a transcript
-			itemGeneID = itemGeneID.replaceAll("_T..$", ""); //Remove _T## suffixs, which also indicate this is a transcript
-			itemGeneID = itemGeneID.replaceAll("_FGP...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
-			itemGeneID = itemGeneID.replaceAll("_FGT...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
-//			itemGeneID = itemGeneID.replaceAll("_FG...$", ""); //Having manually looked at the IDs, only one gene has an _FG number, so removing it isn't necessary
-//			System.out.println(itemGeneID);
-		}
-		System.out.println("Test done");
+//		JavacycConnection conn = new JavacycConnection("jrwalsh-server.student.iastate.edu", 4444);
+//		conn.selectOrganism("MAIZE");
+//		
+//		String printString = "";
+//		for (Frame gene : conn.getAllGFPInstances("|Genes|")) {
+//			printString += gene.getCommonName()+"\n";
+//		}
+//		printString("geneNames.txt", printString);
+		
+		
+//		ArrayList<Frame> frames = conn.search("_FG", Gene.GFPtype);
+//		for (Frame frame : frames) {
+//			if (!frame.getCommonName().contains("_FGT")) System.out.println(frame.getCommonName());  
+////			System.out.println(frame.getCommonName());
+//			String itemGeneID = frame.getCommonName();
+//			itemGeneID = itemGeneID.replaceAll("_P..$", ""); //Remove _P## suffixs, which indicate this is a transcript
+//			itemGeneID = itemGeneID.replaceAll("_T..$", ""); //Remove _T## suffixs, which also indicate this is a transcript
+//			itemGeneID = itemGeneID.replaceAll("_FGP...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
+//			itemGeneID = itemGeneID.replaceAll("_FGT...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
+////			itemGeneID = itemGeneID.replaceAll("_FG...$", ""); //Having manually looked at the IDs, only one gene has an _FG number, so removing it isn't necessary
+////			System.out.println(itemGeneID);
+//		}
+//		System.out.println("Test done");
+		
+		
+		
+		
+		
+//		//REGEX test
+//		String s = "GRMZM2G062416_P02";
+//		String p = "(.*)(_P)(\\d\\d$)";
+//		Pattern r = Pattern.compile(p);
+//		Matcher m = r.matcher(s);
+//		if (m.find()) {
+//			System.out.println("Found value: " + m.group(0));
+//			String output = m.replaceFirst("$1_T$3");
+//			System.out.println(output);
+//		} else {
+//			System.out.println("No Match");
+//		}
+		
+		
+		
 	}
 
 
@@ -227,16 +259,16 @@ public class Main {
 //		return out;
 //	}
 	
-//	protected static void printString(String fileName, String printString) {
-//		PrintStream o = null;
-//		try {
-//			o = new PrintStream(new File(fileName));
-//			o.println(printString);
-//			o.close();
-//		}
-//		catch(Exception e) {
-//			e.printStackTrace();
-//			System.exit(0);
-//		}
-//	}
+	protected static void printString(String fileName, String printString) {
+		PrintStream o = null;
+		try {
+			o = new PrintStream(new File(fileName));
+			o.println(printString);
+			o.close();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+	}
 }
