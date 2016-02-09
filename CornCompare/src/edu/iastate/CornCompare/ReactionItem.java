@@ -7,12 +7,16 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ReactionItem {
 	public ArrayList<String> frameID = new ArrayList<String>();
-	public String comparableData;
+	public String comparableField;
+	public String commonName;
+	public String EC;
 	
 	// ComparableField in the case for reactions is expected to be the ???
-	public ReactionItem (String frameID, String comparableData) {
+	public ReactionItem (String frameID, String comparableData, String commonName, String EC) {
 		this.frameID.add(frameID);
-		this.comparableData = comparableData;
+		this.comparableField = comparableData;
+		this.commonName = commonName;
+		this.EC = EC;
 	}
 	
 	public void addFrameID(String frameID) {
@@ -22,7 +26,7 @@ public class ReactionItem {
 	@Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31).
-            append(comparableData).
+            append(comparableField).
             toHashCode();
     }
 
@@ -35,12 +39,12 @@ public class ReactionItem {
 
         ReactionItem rhs = (ReactionItem) obj;
         return new EqualsBuilder().
-            append(comparableData, rhs.comparableData).
+            append(comparableField, rhs.comparableField).
             isEquals();
     }
     
     @Override
     public String toString() {
-    	return frameID + " : " + comparableData;
+    	return frameID + " : " + comparableField;
     }
 }
