@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -118,11 +120,11 @@ public class ProteinComparison {
 		
 		// Next, we only consider Proteins with some form of annotation.  We define annotation as having a link to at least one GO annotation and/or reaction link.
 		int countNoAnnotation = 0;
-		Set<ProteinItem> processedList = new HashSet<ProteinItem>();
+		Set<ProteinItem> tempRemoveMissingAnnotationSet = new HashSet<ProteinItem>();
 		for (ProteinItem item : tempRemoveDuplicateSet) {
 			Frame product = Frame.load(conn, item.frameID);
 			if (!product.getSlotValues("CATALYZES").isEmpty() || !product.getSlotValues("GO-TERMS").isEmpty()) {
-				processedList.add(item);
+				tempRemoveMissingAnnotationSet.add(item);
 			} else {
 				if (verbose) {
 //					System.out.println("Removing " + item.frameID + ": no annotation");
@@ -136,7 +138,42 @@ public class ProteinComparison {
 			appendLine(logFile, "Removed a total of " + countNoAnnotation + " objects due to no annotation"+"\n");
 		}
 		
-		//TODO i might need to replace any _T## with an _P## to make them consistent and therefore matchable
+		//We need to update names to make them consistent and therefore matchable between CornCyc and MaizeCyc
+		Set<ProteinItem> processedList = new HashSet<ProteinItem>();
+		int suffixConsistencyCount = 0;
+		for (ProteinItem item : tempRemoveMissingAnnotationSet) {
+			String itemProteinID = item.comparableField;
+			
+			//Replace any _T## with an _P## to make them consistent and therefore matchable between MaizeCyc and CornCyc
+			String p = "(.*)(_T)(\\d\\d$)"; // 3 capture groups.  first group is any length of letters or numbers, followed by an _P, followed by 2 numbers and an end of line
+			Pattern r = Pattern.compile(p);
+			Matcher m = r.matcher(itemProteinID);
+			if (m.find()) {
+				itemProteinID = m.replaceFirst("$1_P$3");
+				suffixConsistencyCount++;
+			} else {
+				//Replace any _FGT### with an _FGP### to make them consistent and therefore matchable between MaizeCyc and CornCyc
+				p = "(.*)(_FGT)(\\d\\d\\d$)";
+				r = Pattern.compile(p);
+				m = r.matcher(itemProteinID);
+				if (m.find()) {
+					itemProteinID = m.replaceFirst("$1_FGP$3");
+					suffixConsistencyCount++;
+				}
+			}
+			
+			ProteinItem proteinItem = new ProteinItem(item.frameID, itemProteinID);
+			if (!processedList.add(proteinItem) && verbose && !item.comparableField.equalsIgnoreCase(proteinItem.comparableField)) {
+//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
+				appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""+"\n");
+			} else {
+				System.err.println("Warning! Caught and removed an unexpected duplicate name during transcript name updating!");
+			}
+		}
+		if (verbose) {
+			System.out.println("Updated a total of " + suffixConsistencyCount + " objects due to transcript suffix inconsistency");
+			appendLine(logFile, "Updated a total of " + suffixConsistencyCount + " objects due to transcript suffix inconsistency"+"\n");
+		}
 		
 		// Print the sorted and processed lists
 		printSet("Proteins\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations

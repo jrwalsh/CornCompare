@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -187,9 +189,40 @@ public class GeneComparison {
 				appendLine(logFile, "Removed a total of " + countSpliceVariant + " objects due to being a transcript and not a gene"+"\n");
 			}
 		} else {
-			// Skip the step of filtering out transcripts
-			//TODO i might need to replace any _P## with an _T## to make them consistent and therefore matchable
-			processedList = tempRemoveMissingAnnotationSet;
+			int suffixConsistencyCount = 0;
+			for (GeneItem item : tempRemoveMissingAnnotationSet) {
+				String itemGeneID = item.comparableField;
+				
+				//Replace any _P## with an _T## to make them consistent and therefore matchable between MaizeCyc and CornCyc
+				String p = "(.*)(_P)(\\d\\d$)"; // 3 capture groups.  first group is any length of letters or numbers, followed by an _P, followed by 2 numbers and an end of line
+				Pattern r = Pattern.compile(p);
+				Matcher m = r.matcher(itemGeneID);
+				if (m.find()) {
+					itemGeneID = m.replaceFirst("$1_T$3");
+					suffixConsistencyCount++;
+				} else {
+					//Replace any _FGP### with an _FGT### to make them consistent and therefore matchable between MaizeCyc and CornCyc
+					p = "(.*)(_FGP)(\\d\\d\\d$)";
+					r = Pattern.compile(p);
+					m = r.matcher(itemGeneID);
+					if (m.find()) {
+						itemGeneID = m.replaceFirst("$1_FGT$3");
+						suffixConsistencyCount++;
+					}
+				}
+				
+				GeneItem geneItem = new GeneItem(item.frameID, itemGeneID);
+				if (!processedList.add(geneItem) && verbose && !item.comparableField.equalsIgnoreCase(geneItem.comparableField)) {
+	//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""");
+					appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""+"\n");
+				} else {
+					System.err.println("Warning! Caught and removed an unexpected duplicate name during transcript name updating!");
+				}
+			}
+			if (verbose) {
+				System.out.println("Updated a total of " + suffixConsistencyCount + " objects due to transcript suffix inconsistency");
+				appendLine(logFile, "Updated a total of " + suffixConsistencyCount + " objects due to transcript suffix inconsistency"+"\n");
+			}
 		}
 		
 		// Print the sorted and processed lists
