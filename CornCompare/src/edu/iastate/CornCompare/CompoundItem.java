@@ -6,11 +6,15 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class CompoundItem {
 	public String frameID;
 	public String comparableField;
+	public String commonName;
+	public String inchi;
 	
-	// ComparableField in the case for compounds is expected to be the inchi string (fallback is commonName)
-	public CompoundItem (String frameID, String comparableField) {
+	// ComparableField in the case for compounds is expected to be the inchi string (fallback is commonName, then frameID)
+	public CompoundItem (String frameID, String comparableField, String commonName, String inchi) {
 		this.frameID = frameID;
 		this.comparableField = comparableField;
+		this.commonName = commonName;
+		this.inchi = inchi;
 	}
 	
 	@Override

@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class GeneItem {
 	public String frameID;
 	public String comparableField;
-	
+
 	// ComparableField in the case for genes is expected to be the commonName minus the suffix _P## or _T##
 	public GeneItem (String frameID, String comparableField) {
 		this.frameID = frameID;
