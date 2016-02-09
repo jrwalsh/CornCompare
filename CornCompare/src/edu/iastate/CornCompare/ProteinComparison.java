@@ -28,7 +28,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
  *
  */
 public class ProteinComparison {
-	private final String ptoolsClass = "|Proteins|"; //TODO |Polypeptides| or |Proteins|?
+	private final String ptoolsClass = "|Polypeptides|"; //TODO |Polypeptides| or |Proteins|?
 	private JavacycConnection conn;
 	private String fileName;
 	private boolean verbose;
@@ -292,4 +292,19 @@ public class ProteinComparison {
 			System.exit(0);
 		}
 	}
+	
+	// Add in GO citation counting/comparing
+//	for (Frame protein : proteinNodes) {
+//		try {
+//			for (Object goTerm : protein.getSlotValues("GO-TERMS")) {
+//				uniqueGoTerms.add(goTerm.toString());
+//				gotermAssignments++;
+//				for(Object citation : protein.getAnnotations("GO-TERMS", goTerm.toString(), "CITATIONS")) {
+//					gotermCitations++;
+//				}
+//			}
+//		} catch (Exception e) {
+//			System.out.println("Problem with protein : " + protein.getLocalID() + " : " + protein.isClassFrame());
+//		}
+//	}
 }
