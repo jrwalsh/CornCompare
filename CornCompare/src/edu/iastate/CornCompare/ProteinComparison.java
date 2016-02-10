@@ -163,9 +163,11 @@ public class ProteinComparison {
 			}
 			
 			ProteinItem proteinItem = new ProteinItem(item.frameID, itemProteinID);
-			if (!processedList.add(proteinItem) && verbose && !item.comparableField.equalsIgnoreCase(proteinItem.comparableField)) {
-//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
-				appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""+"\n");
+			if (processedList.add(proteinItem)) {
+				if (verbose && !item.comparableField.equalsIgnoreCase(proteinItem.comparableField)) {
+	//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
+					appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""+"\n");
+				}
 			} else {
 				System.err.println("Warning! Caught and removed an unexpected duplicate name during transcript name updating!");
 			}

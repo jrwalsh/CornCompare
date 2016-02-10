@@ -212,9 +212,11 @@ public class GeneComparison {
 				}
 				
 				GeneItem geneItem = new GeneItem(item.frameID, itemGeneID);
-				if (!processedList.add(geneItem) && verbose && !item.comparableField.equalsIgnoreCase(geneItem.comparableField)) {
-	//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""");
-					appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""+"\n");
+				if (processedList.add(geneItem)) {
+					if (verbose && !item.comparableField.equalsIgnoreCase(geneItem.comparableField)) {
+		//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""");
+						appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""+"\n");
+					}
 				} else {
 					System.err.println("Warning! Caught and removed an unexpected duplicate name during transcript name updating!");
 				}
