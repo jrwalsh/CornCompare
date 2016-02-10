@@ -2,40 +2,44 @@ package edu.iastate.CornCompare;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
-import edu.iastate.javacyco.Pathway;
-
+ 
+/**
+  * This object controls the comparison of pathways between the two provided pathway tools organisms.  For pathways, we must be sure to remove any super pathways
+  * from the list in order to avoid duplication of pathway data.  Super pathways are a set of normal pathways grouped together, representing an arbitrary understanding
+  * of how parts of the network function together.  The Pathway Tools manual specifies a set of guidelines which are used by curators when deciding what pathway 
+  * boundaries are appropriate and what pathways should be joined into a super pathway.
+  * 
+  * We expect most of the pathway data in CornCyc and MaizeCyc to have been automatically pulled from MetaCyc as needed during the pathway inference step of Pathologic.
+  * 
+  * @author Jesse
+  *
+  */
 public class PathwayComparison {
 	private final String ptoolsClass = "|Pathways|";
 	private final String ptoolsFilterClass = "|Super-Pathways|";
 	private JavacycConnection conn;
-	private String fileName;
 	private boolean verbose;
 	private String organismA;
 	private String organismB;
-	private String logFile = "Pathways\\log.txt";
-	private String destination = "Pathways";
+	private File logFile;
+	private String destinationFolder;
 	
 	private FrameList<PathwayItem> framesA;
 	private FrameList<PathwayItem> framesB;
 	
-	public PathwayComparison (String host, String organismA, String organismB, int port, String fileName, boolean verbose) {
+	public PathwayComparison (String host, String organismA, String organismB, int port, String outputDir, boolean verbose) {
 		conn = new JavacycConnection(host, port);
-		this.fileName = fileName;
+		this.destinationFolder = outputDir + System.getProperty("file.separator") + "Pathways";
+		this.logFile = new File(destinationFolder, "Pathway_log.txt");
 		this.verbose = verbose;
 		this.organismA = organismA;
 		this.organismB = organismB;
@@ -132,9 +136,9 @@ public class PathwayComparison {
 		}
 		
 		// Print the sorted and processed lists
-		printSet("Pathways\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-		printSet("Pathways\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-		printSet("Pathways\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
+		printSet(new File(this.destinationFolder, "Pathway_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+		printSet(new File(this.destinationFolder, "Pathway_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+		printSet(new File(this.destinationFolder, "Pathway_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 		
 		return processedList;
 	}
@@ -143,14 +147,10 @@ public class PathwayComparison {
 		Set<PathwayItem> matched = new HashSet<PathwayItem>();
 		Set<PathwayItem> uniqueListA = new HashSet<PathwayItem>();
 		Set<PathwayItem> uniqueListB = new HashSet<PathwayItem>();
-//		HashMap<PathwayItem,PathwayItem> setA = new HashMap<PathwayItem,PathwayItem>();
 		HashMap<PathwayItem,PathwayItem> setB = new HashMap<PathwayItem,PathwayItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
 			uniqueListA = preProcess(organismA, framesA);
-//			for (PathwayItem item : uniqueListA) {
-//				setA.put(item, item); 
-//			}
 			uniqueListB = preProcess(organismB, framesB);
 			for (PathwayItem item : uniqueListB) {
 				setB.put(item, item); 
@@ -166,11 +166,6 @@ public class PathwayComparison {
 				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
 			}
 		}
-//		for (PathwayItem item : uniqueListB) {
-//			if (uniqueListA.contains(item)) {
-//				matched.add(item);
-//			}
-//		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
@@ -184,9 +179,9 @@ public class PathwayComparison {
 		}
 		
 		// Print matching results
-		printString("Pathways\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-		printSet("Pathways\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-		printSet("Pathways\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+		printString(new File(this.destinationFolder, "Pathway_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+		printSet(new File(this.destinationFolder, "Pathway_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+		printSet(new File(this.destinationFolder, "Pathway_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 	}
 	
 	/**
@@ -195,10 +190,10 @@ public class PathwayComparison {
 	 * @param fileName
 	 * @param printString
 	 */
-	protected void printString(String fileName, String printString) {
+	protected void printString(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(printString);
 			o.close();
 		}
@@ -211,13 +206,13 @@ public class PathwayComparison {
 	/**
 	 * Simple function to append a string to the specified file location.
 	 * 
-	 * @param fileName
+	 * @param file
 	 * @param printString
 	 */
-	protected void appendLine(String fileName, String printString) {
+	protected void appendLine(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new FileOutputStream(fileName, true));
+			o = new PrintStream(new FileOutputStream(file, true));
 			o.append(printString);
 			o.close();
 		}
@@ -227,16 +222,16 @@ public class PathwayComparison {
 		}
 	}
 	
-	protected void printSet(String fileName, String columnName, Set<PathwayItem> set) {
+	protected void printSet(File file, String columnName, Set<PathwayItem> set) {
 		ArrayList<PathwayItem> list = new ArrayList<PathwayItem>();
 		list.addAll(set);
-		printSet(fileName, columnName, list);
+		printSet(file, columnName, list);
 	}
 	
-	protected void printSet(String fileName, String columnName, ArrayList<PathwayItem> set) {
+	protected void printSet(File file, String columnName, ArrayList<PathwayItem> set) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(columnName);
 			for (PathwayItem item : set) {
 				o.println(item.frameID + "\t" + item.comparableField);

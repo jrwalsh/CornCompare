@@ -2,39 +2,38 @@ package edu.iastate.CornCompare;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
-import edu.iastate.javacyco.Reaction;
-
+ 
+/**
+  * This object controls the comparison of reactions between the two provided pathway tools organisms.  We also output EC numbers in order to compare them externally.
+  * 
+  * @author Jesse
+  * @date 2/10/2016
+  */
 public class ReactionComparison {
-	private final String ptoolsClass = "|Reactions|"; //consider |Transport-Reactions|
+	private final String ptoolsClass = "|Reactions|"; //TODO consider |Transport-Reactions|?
 	private JavacycConnection conn;
-	private String fileName;
 	private boolean verbose;
 	private String organismA;
 	private String organismB;
-	private String logFile = "Reactions\\log.txt";
-	private String destination = "Reactions";
+	private File logFile;
+	private String destinationFolder;
 	
 	private FrameList<ReactionItem> framesA;
 	private FrameList<ReactionItem> framesB;
 	
-	public ReactionComparison (String host, String organismA, String organismB, int port, String fileName, boolean verbose) {
+	public ReactionComparison (String host, String organismA, String organismB, int port, String outputDir, boolean verbose) {
 		conn = new JavacycConnection(host, port);
-		this.fileName = fileName;
+		this.destinationFolder = outputDir + System.getProperty("file.separator") + "Reactions";
+		this.logFile = new File(destinationFolder, "Reaction_log.txt");
 		this.verbose = verbose;
 		this.organismA = organismA;
 		this.organismB = organismB;
@@ -113,13 +112,14 @@ public class ReactionComparison {
 			appendLine(logFile, "Removed a total of " + countDuplicateNames + " objects due to duplicate common names"+"\n");
 		}
 		
-		// Consider filtering for reactions with gene association, or reactions with protein association, or reactions in a pathway, or reactions with an EC number?
-		Set<ReactionItem> processedList = tempRemoveDuplicateSet;
+		//TODO Consider filtering for reactions with gene association, or reactions with protein association, or reactions in a pathway, or reactions with an EC number?
+		Set<ReactionItem> processedList = new HashSet<ReactionItem>();
+		processedList.addAll(tempRemoveDuplicateSet);
 		
 		// Print the sorted and processed lists
-		printSet("Reactions\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-		printSet("Reactions\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-		printSet("Reactions\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
+		printSet(new File(this.destinationFolder, "Reaction_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+		printSet(new File(this.destinationFolder, "Reaction_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+		printSet(new File(this.destinationFolder, "Reaction_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 		
 		return processedList;
 	}
@@ -128,14 +128,10 @@ public class ReactionComparison {
 		Set<ReactionItem> matched = new HashSet<ReactionItem>();
 		Set<ReactionItem> uniqueListA = new HashSet<ReactionItem>();
 		Set<ReactionItem> uniqueListB = new HashSet<ReactionItem>();
-//		HashMap<ReactionItem,ReactionItem> setA = new HashMap<ReactionItem,ReactionItem>();
 		HashMap<ReactionItem,ReactionItem> setB = new HashMap<ReactionItem,ReactionItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
 			uniqueListA = preProcess(organismA, framesA);
-//			for (ReactionItem item : uniqueListA) {
-//				setA.put(item, item); 
-//			}
 			uniqueListB = preProcess(organismB, framesB);
 			for (ReactionItem item : uniqueListB) {
 				setB.put(item, item); 
@@ -161,11 +157,6 @@ public class ReactionComparison {
 				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
 			}
 		}
-//		for (ReactionItem item : uniqueListB) {
-//			if (uniqueListA.contains(item)) {
-//				matched.add(item);
-//			}
-//		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
@@ -179,9 +170,9 @@ public class ReactionComparison {
 		}
 		
 		// Print matching results
-		printString("Reactions\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-		printSet("Reactions\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-		printSet("Reactions\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+		printString(new File(this.destinationFolder, "Reaction_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+		printSet(new File(this.destinationFolder, "Reaction_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+		printSet(new File(this.destinationFolder, "Reaction_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 	}
 	
 	/**
@@ -190,10 +181,10 @@ public class ReactionComparison {
 	 * @param fileName
 	 * @param printString
 	 */
-	protected void printString(String fileName, String printString) {
+	protected void printString(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(printString);
 			o.close();
 		}
@@ -206,13 +197,13 @@ public class ReactionComparison {
 	/**
 	 * Simple function to append a string to the specified file location.
 	 * 
-	 * @param fileName
+	 * @param file
 	 * @param printString
 	 */
-	protected void appendLine(String fileName, String printString) {
+	protected void appendLine(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new FileOutputStream(fileName, true));
+			o = new PrintStream(new FileOutputStream(file, true));
 			o.append(printString);
 			o.close();
 		}
@@ -222,16 +213,16 @@ public class ReactionComparison {
 		}
 	}
 	
-	protected void printSet(String fileName, String columnName, Set<ReactionItem> set) {
+	protected void printSet(File file, String columnName, Set<ReactionItem> set) {
 		ArrayList<ReactionItem> list = new ArrayList<ReactionItem>();
 		list.addAll(set);
-		printSet(fileName, columnName, list);
+		printSet(file, columnName, list);
 	}
 	
-	protected void printSet(String fileName, String columnName, ArrayList<ReactionItem> set) {
+	protected void printSet(File file, String columnName, ArrayList<ReactionItem> set) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(columnName);
 			for (ReactionItem item : set) {
 				o.println(item.frameID + "\t" + item.comparableField + "\t" + item.EC);

@@ -22,31 +22,26 @@ import edu.iastate.javacyco.PtoolsErrorException;
  * This object is specifically tailored to the data in the MaizeCyc and CornCyc databases and is not guaranteed to work properly with other organisms.
  * 
  * @author Jesse
- *
+ * @date 2/10/2016
  */
 public class GeneComparison {
 	private final String ptoolsClass = "|Genes|";
 	private JavacycConnection conn;
-	private String fileName;
 	private boolean verbose;
 	private String organismA;
 	private String organismB;
-	private String logFile = "Genes\\log.txt";
-	private String destination = "Genes";
+	private File logFile;
+	private String destinationFolder;
+	private String destinationFolderTranscripts;
 	
 	private FrameList<GeneItem> framesA;
 	private FrameList<GeneItem> framesB;
 	
-//	private Set<Frame> rawListA;
-//	private ArrayList<GeneItem> classListA;
-//	private ArrayList<GeneItem> instanceListA;
-//	private Set<Frame> rawListB;
-//	private ArrayList<GeneItem> classListB;
-//	private ArrayList<GeneItem> instanceListB;
-	
-	public GeneComparison (String host, String organismA, String organismB, int port, String fileName, boolean verbose) {
+	public GeneComparison (String host, String organismA, String organismB, int port, String outputDir, boolean verbose) {
 		conn = new JavacycConnection(host, port);
-		this.fileName = fileName;
+		this.destinationFolder = outputDir + System.getProperty("file.separator") + "Genes";
+		this.destinationFolderTranscripts = outputDir + System.getProperty("file.separator") + "Genes" + System.getProperty("file.separator") + "Transcripts";
+		this.logFile = new File(destinationFolder, "Gene_and_Transcript_log.txt");
 		this.verbose = verbose;
 		this.organismA = organismA;
 		this.organismB = organismB;
@@ -95,7 +90,7 @@ public class GeneComparison {
 	/**
 	 * Perform a data pre-processing step prior to comparison.  For gene data, this means we first filter out genes with duplicate common names,
 	 * then remove the _P## and _T## suffixes on the common names in order to specifically address the gene questions without complicating the data with transcript
-	 * information.
+	 * information.  For transcripts, we instead convert _P## to _T## suffixes for consistency.
 	 * 
 	 * @return
 	 * @throws PtoolsErrorException
@@ -136,6 +131,7 @@ public class GeneComparison {
 		for (GeneItem item : tempRemoveDuplicateSet) {
 			boolean foundGood = false;
 			try {
+				@SuppressWarnings("unchecked")
 				ArrayList<String> productsOfGene = conn.allProductsOfGene(item.frameID);
 				for (String productID : productsOfGene) {
 					Frame product = Frame.load(conn, productID);
@@ -179,7 +175,7 @@ public class GeneComparison {
 				itemGeneID = itemGeneID.replaceAll("_FGT...$", ""); //Remove FGP#### suffixs, which also indicate this is a transcript
 				GeneItem geneItem = new GeneItem(item.frameID, itemGeneID);
 				if (!processedList.add(geneItem) && verbose) {
-	//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: this frame is a splice variant");
+//					System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: this frame is a splice variant");
 					appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: this frame is a splice variant"+"\n");
 					countSpliceVariant++;
 				}
@@ -214,7 +210,7 @@ public class GeneComparison {
 				GeneItem geneItem = new GeneItem(item.frameID, itemGeneID);
 				if (processedList.add(geneItem)) {
 					if (verbose && !item.comparableField.equalsIgnoreCase(geneItem.comparableField)) {
-		//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""");
+//						System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""");
 						appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + geneItem.frameID + " - " + geneItem.comparableField + "\""+"\n");
 					}
 				} else {
@@ -229,16 +225,14 @@ public class GeneComparison {
 		
 		// Print the sorted and processed lists
 		if (includeTranscripts) {
-			printSet("Genes\\Transcripts\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-			printSet("Genes\\Transcripts\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-			printSet("Genes\\Transcripts\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
-			
+			printSet(new File(this.destinationFolderTranscripts, "Transcript_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+			printSet(new File(this.destinationFolderTranscripts, "Transcript_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+			printSet(new File(this.destinationFolderTranscripts, "Transcript_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 			return processedList;
 		} else {
-			printSet("Genes\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-			printSet("Genes\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-			printSet("Genes\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
-			
+			printSet(new File(this.destinationFolder, "Gene_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+			printSet(new File(this.destinationFolder, "Gene_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+			printSet(new File(this.destinationFolder, "Gene_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 			return processedList;
 		}
 	}
@@ -247,14 +241,10 @@ public class GeneComparison {
 		Set<GeneItem> matched = new HashSet<GeneItem>();
 		Set<GeneItem> uniqueListA = new HashSet<GeneItem>();
 		Set<GeneItem> uniqueListB = new HashSet<GeneItem>();
-//		HashMap<GeneItem,GeneItem> setA = new HashMap<GeneItem,GeneItem>();
 		HashMap<GeneItem,GeneItem> setB = new HashMap<GeneItem,GeneItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
 			uniqueListA = preProcess(organismA, framesA, includeTranscripts);
-//			for (GeneItem item : uniqueListA) {
-//				setA.put(item, item); 
-//			}
 			uniqueListB = preProcess(organismB, framesB, includeTranscripts);
 			for (GeneItem item : uniqueListB) {
 				setB.put(item, item); 
@@ -267,14 +257,11 @@ public class GeneComparison {
 		for (GeneItem item : uniqueListA) {
 			if (setB.containsValue(item)) {
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t";
+				matchSetOutput = matchSetOutput + setB.get(item).frameID + "\t" + setB.get(item).comparableField;
+				matchSetOutput = matchSetOutput + "\n";
 			}
 		}
-//		for (GeneItem item : uniqueListB) {
-//			if (uniqueListA.contains(item)) {
-//				matched.add(item);
-//			}
-//		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
@@ -289,13 +276,13 @@ public class GeneComparison {
 		
 		// Print matching results
 		if (includeTranscripts) {
-			printString("Genes\\Transcripts\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-			printSet("Genes\\Transcripts\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-			printSet("Genes\\Transcripts\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+			printString(new File(this.destinationFolderTranscripts, "Transcript_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+			printSet(new File(this.destinationFolderTranscripts, "Transcript_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+			printSet(new File(this.destinationFolderTranscripts, "Transcript_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 		} else {
-			printString("Genes\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-			printSet("Genes\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-			printSet("Genes\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+			printString(new File(this.destinationFolder, "Gene_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+			printSet(new File(this.destinationFolder, "Gene_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+			printSet(new File(this.destinationFolder, "Gene_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 		}
 	}
 	
@@ -305,10 +292,10 @@ public class GeneComparison {
 	 * @param fileName
 	 * @param printString
 	 */
-	protected void printString(String fileName, String printString) {
+	protected void printString(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(printString);
 			o.close();
 		}
@@ -321,13 +308,13 @@ public class GeneComparison {
 	/**
 	 * Simple function to append a string to the specified file location.
 	 * 
-	 * @param fileName
+	 * @param file
 	 * @param printString
 	 */
-	protected void appendLine(String fileName, String printString) {
+	protected void appendLine(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new FileOutputStream(fileName, true));
+			o = new PrintStream(new FileOutputStream(file, true));
 			o.append(printString);
 			o.close();
 		}
@@ -337,16 +324,16 @@ public class GeneComparison {
 		}
 	}
 	
-	protected void printSet(String fileName, String columnName, Set<GeneItem> set) {
+	protected void printSet(File file, String columnName, Set<GeneItem> set) {
 		ArrayList<GeneItem> list = new ArrayList<GeneItem>();
 		list.addAll(set);
-		printSet(fileName, columnName, list);
+		printSet(file, columnName, list);
 	}
 	
-	protected void printSet(String fileName, String columnName, ArrayList<GeneItem> set) {
+	protected void printSet(File file, String columnName, ArrayList<GeneItem> set) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(columnName);
 			for (GeneItem item : set) {
 				o.println(item.frameID + "\t" + item.comparableField);

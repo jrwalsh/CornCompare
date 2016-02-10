@@ -16,33 +16,32 @@ import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 /**
- * This object controls the comparison of Proteins between the two provided pathway tools organisms.  This object also controls comparison of EC numbers.
- * EC numbers are stored in slots on the Protein objects.
+ * This object controls the comparison of Proteins between the two provided pathway tools organisms.
  * 
  * Proteins use a naming convention with a _P## or _T## suffix to denote alternate gene products for a gene with alternate splicing.  We do not remove this on proteins
- * as the proteins do represent different biological entities.
+ * as the proteins do represent different biological entities.  However, we convert _T## suffixes to  _P## suffixes for consistency.
  * 
  * This object is specifically tailored to the data in the MaizeCyc and CornCyc databases and is not guaranteed to work properly with other organisms.
  * 
  * @author Jesse
- *
+ * @date 2/10/2016
  */
 public class ProteinComparison {
-	private final String ptoolsClass = "|Polypeptides|"; //TODO |Polypeptides| or |Proteins|?
+	private final String ptoolsClass = "|Polypeptides|"; //We do not start at |Proteins|, too broad
 	private JavacycConnection conn;
-	private String fileName;
 	private boolean verbose;
 	private String organismA;
 	private String organismB;
-	private String logFile = "Proteins\\log.txt";
-	private String destination = "Proteins";
+	private File logFile;
+	private String destinationFolder;
 	
 	private FrameList<ProteinItem> framesA;
 	private FrameList<ProteinItem> framesB;
 	
-	public ProteinComparison (String host, String organismA, String organismB, int port, String fileName, boolean verbose) {
+	public ProteinComparison (String host, String organismA, String organismB, int port, String outputDir, boolean verbose) {
 		conn = new JavacycConnection(host, port);
-		this.fileName = fileName;
+		this.destinationFolder = outputDir + System.getProperty("file.separator") + "Proteins";
+		this.logFile = new File(destinationFolder, "Protein_log.txt");
 		this.verbose = verbose;
 		this.organismA = organismA;
 		this.organismB = organismB;
@@ -165,7 +164,7 @@ public class ProteinComparison {
 			ProteinItem proteinItem = new ProteinItem(item.frameID, itemProteinID);
 			if (processedList.add(proteinItem)) {
 				if (verbose && !item.comparableField.equalsIgnoreCase(proteinItem.comparableField)) {
-	//				System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
+//					System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
 					appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""+"\n");
 				}
 			} else {
@@ -178,9 +177,9 @@ public class ProteinComparison {
 		}
 		
 		// Print the sorted and processed lists
-		printSet("Proteins\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-		printSet("Proteins\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-		printSet("Proteins\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
+		printSet(new File(this.destinationFolder, "Protein_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+		printSet(new File(this.destinationFolder, "Protein_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+		printSet(new File(this.destinationFolder, "Protein_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 		
 		return processedList;
 	}
@@ -189,14 +188,10 @@ public class ProteinComparison {
 		Set<ProteinItem> matched = new HashSet<ProteinItem>();
 		Set<ProteinItem> uniqueListA = new HashSet<ProteinItem>();
 		Set<ProteinItem> uniqueListB = new HashSet<ProteinItem>();
-//		HashMap<ProteinItem,ProteinItem> setA = new HashMap<ProteinItem,ProteinItem>();
 		HashMap<ProteinItem,ProteinItem> setB = new HashMap<ProteinItem,ProteinItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
 			uniqueListA = preProcess(organismA, framesA);
-//			for (ProteinItem item : uniqueListA) {
-//				setA.put(item, item); 
-//			}
 			uniqueListB = preProcess(organismB, framesB);
 			for (ProteinItem item : uniqueListB) {
 				setB.put(item, item); 
@@ -205,18 +200,15 @@ public class ProteinComparison {
 			e.printStackTrace();
 		}
 		
-		String matchSetOutput = organismA + "\t" + organismB + "\n";
+		String matchSetOutput = organismA + "\t\t" + organismB + "\n";
 		for (ProteinItem item : uniqueListA) {
 			if (setB.containsValue(item)) {
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t";
+				matchSetOutput = matchSetOutput + setB.get(item).frameID + "\t" + setB.get(item).comparableField;
+				matchSetOutput = matchSetOutput + "\n";
 			}
 		}
-//		for (ProteinItem item : uniqueListB) {
-//			if (uniqueListA.contains(item)) {
-//				matched.add(item);
-//			}
-//		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
@@ -230,9 +222,9 @@ public class ProteinComparison {
 		}
 		
 		// Print matching results
-		printString("Proteins\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-		printSet("Proteins\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-		printSet("Proteins\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+		printString(new File(this.destinationFolder, "Protein_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+		printSet(new File(this.destinationFolder, "Protein_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+		printSet(new File(this.destinationFolder, "Protein_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 	}
 	
 	/**
@@ -241,10 +233,10 @@ public class ProteinComparison {
 	 * @param fileName
 	 * @param printString
 	 */
-	protected void printString(String fileName, String printString) {
+	protected void printString(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(printString);
 			o.close();
 		}
@@ -257,13 +249,13 @@ public class ProteinComparison {
 	/**
 	 * Simple function to append a string to the specified file location.
 	 * 
-	 * @param fileName
+	 * @param file
 	 * @param printString
 	 */
-	protected void appendLine(String fileName, String printString) {
+	protected void appendLine(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new FileOutputStream(fileName, true));
+			o = new PrintStream(new FileOutputStream(file, true));
 			o.append(printString);
 			o.close();
 		}
@@ -273,16 +265,16 @@ public class ProteinComparison {
 		}
 	}
 	
-	protected void printSet(String fileName, String columnName, Set<ProteinItem> set) {
+	protected void printSet(File file, String columnName, Set<ProteinItem> set) {
 		ArrayList<ProteinItem> list = new ArrayList<ProteinItem>();
 		list.addAll(set);
-		printSet(fileName, columnName, list);
+		printSet(file, columnName, list);
 	}
 	
-	protected void printSet(String fileName, String columnName, ArrayList<ProteinItem> set) {
+	protected void printSet(File file, String columnName, ArrayList<ProteinItem> set) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(columnName);
 			for (ProteinItem item : set) {
 				o.println(item.frameID + "\t" + item.comparableField);
@@ -295,7 +287,7 @@ public class ProteinComparison {
 		}
 	}
 	
-	// Add in GO citation counting/comparing
+	//TODO Add in GO citation counting/comparing
 //	for (Frame protein : proteinNodes) {
 //		try {
 //			for (Object goTerm : protein.getSlotValues("GO-TERMS")) {

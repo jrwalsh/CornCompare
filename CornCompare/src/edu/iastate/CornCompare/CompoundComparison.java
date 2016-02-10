@@ -13,22 +13,30 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.PtoolsErrorException;
 
+/**
+ * This object controls the comparison of compounds between the two provided pathway tools organisms.  While we should be able to compare compounds by their InChI
+ * string values, inconsistencies in the implementation of the InChI's between CornCyc and MaizeCyc cause this to be unreliable.  Therefore, we match based on frameIDs
+ * and simply warn when the CommonName or InChI does not match.
+ * 
+ * @author Jesse
+ * @date 2/10/2016
+ */
 public class CompoundComparison {
 	private final String ptoolsClass = "|Compounds|";
 	private JavacycConnection conn;
-	private String fileName;
 	private boolean verbose;
 	private String organismA;
 	private String organismB;
-	private String logFile = "Compounds\\log.txt";
-	private String destination = "Compounds";
+	private File logFile;
+	private String destinationFolder;
 	
 	private FrameList<CompoundItem> framesA;
 	private FrameList<CompoundItem> framesB;
 	
-	public CompoundComparison (String host, String organismA, String organismB, int port, String fileName, boolean verbose) {
+	public CompoundComparison (String host, String organismA, String organismB, int port, String outputDir, boolean verbose) {
 		conn = new JavacycConnection(host, port);
-		this.fileName = fileName;
+		this.destinationFolder = outputDir + System.getProperty("file.separator") + "Compounds";
+		this.logFile = new File(destinationFolder, "Compound_log.txt");
 		this.verbose = verbose;
 		this.organismA = organismA;
 		this.organismB = organismB;
@@ -64,19 +72,6 @@ public class CompoundComparison {
 		}
 		
 		for (Frame node : frameList.rawList) {
-			//TODO use inchi for comparable field instead? 1152 matches
-//			String comparableField = node.getSlotValue("InChI");
-//			if (comparableField == null || comparableField.length() == 0 || comparableField.equalsIgnoreCase("null")) comparableField = node.getCommonName();
-//			if (node.isClassFrame()) frameList.classList.add(new CompoundItem(node.getLocalID(), comparableField));
-//			else frameList.instanceList.add(new CompoundItem(node.getLocalID(), comparableField));
-			
-			
-			//TODO use commonName for comparable instead? 1110 matches
-//			if (node.isClassFrame()) frameList.classList.add(new CompoundItem(node.getLocalID(), node.getCommonName()));
-//			else frameList.instanceList.add(new CompoundItem(node.getLocalID(), node.getCommonName()));
-			
-			
-			//TODO use frameID? 1217 matches
 			String inchi = node.getSlotValue("InChI");
 			if (inchi == null) inchi = "";
 			if (node.isClassFrame()) frameList.classList.add(new CompoundItem(node.getLocalID(), node.getLocalID(), node.getCommonName(), inchi));
@@ -90,7 +85,8 @@ public class CompoundComparison {
 	}
 	
 	/**
-	 * Perform a data pre-processing step prior to comparison.  For Compound data, this means we check InChI strings.
+	 * Perform a data pre-processing step prior to comparison.  For Compound data we don't expect any preprocessing changes to data, but check for duplicate names as
+	 * a sanity check.
 	 * 
 	 * @return
 	 * @throws PtoolsErrorException
@@ -120,14 +116,13 @@ public class CompoundComparison {
 			appendLine(logFile, "Removed a total of " + countDuplicateNames + " objects due to duplicate common names"+"\n");
 		}
 		
-		//TODO what to do with InChI strings?
 		Set<CompoundItem> processedList = new HashSet<CompoundItem>();
 		processedList.addAll(tempRemoveDuplicateSet);
 		
 		// Print the sorted and processed lists
-		printSet("Compounds\\Classes_"+organism+".tab", "ClassFrames", frameList.classList);//TODO user-defined locations
-		printSet("Compounds\\Instances_"+organism+".tab", "InstanceFrames", frameList.instanceList);
-		printSet("Compounds\\Filtered_"+organism+".tab", "Filtered InstanceFrames", processedList);
+		printSet(new File(this.destinationFolder, "Compound_Classes_"+organism+".tab"), "ClassFrames", frameList.classList);
+		printSet(new File(this.destinationFolder, "Compound_Instances_"+organism+".tab"), "InstanceFrames", frameList.instanceList);
+		printSet(new File(this.destinationFolder, "Compound_Filtered_"+organism+".tab"), "Filtered InstanceFrames", processedList);
 		
 		return processedList;
 	}
@@ -136,14 +131,10 @@ public class CompoundComparison {
 		Set<CompoundItem> matched = new HashSet<CompoundItem>();
 		Set<CompoundItem> uniqueListA = new HashSet<CompoundItem>();
 		Set<CompoundItem> uniqueListB = new HashSet<CompoundItem>();
-//		HashMap<CompoundItem,CompoundItem> setA = new HashMap<CompoundItem,CompoundItem>();
 		HashMap<CompoundItem,CompoundItem> setB = new HashMap<CompoundItem,CompoundItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
 			uniqueListA = preProcess(organismA, framesA);
-//			for (CompoundItem item : uniqueListA) {
-//				setA.put(item, item); 
-//			}
 			uniqueListB = preProcess(organismB, framesB);
 			for (CompoundItem item : uniqueListB) {
 				setB.put(item, item); 
@@ -171,11 +162,6 @@ public class CompoundComparison {
 				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
 			}
 		}
-//		for (CompoundItem item : uniqueListB) {
-//			if (uniqueListA.contains(item)) {
-//				matched.add(item);
-//			}
-//		}
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
@@ -189,9 +175,9 @@ public class CompoundComparison {
 		}
 		
 		// Print matching results
-		printString("Compounds\\Matching_"+organismA+"_vs_"+organismB+".tab", matchSetOutput);
-		printSet("Compounds\\UniqueA_"+organismA+".tab", "Unique InstanceFrames", uniqueListA);
-		printSet("Compounds\\UniqueB_"+organismB+".tab", "Unique InstanceFrames", uniqueListB);
+		printString(new File(this.destinationFolder, "Compound_Matching_"+organismA+"_vs_"+organismB+".tab"), matchSetOutput);
+		printSet(new File(this.destinationFolder, "Compound_Unique_"+organismA+".tab"), "Unique InstanceFrames", uniqueListA);
+		printSet(new File(this.destinationFolder, "Compound_Unique_"+organismB+".tab"), "Unique InstanceFrames", uniqueListB);
 	}
 	
 	/**
@@ -200,10 +186,10 @@ public class CompoundComparison {
 	 * @param fileName
 	 * @param printString
 	 */
-	protected void printString(String fileName, String printString) {
+	protected void printString(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(printString);
 			o.close();
 		}
@@ -216,13 +202,13 @@ public class CompoundComparison {
 	/**
 	 * Simple function to append a string to the specified file location.
 	 * 
-	 * @param fileName
+	 * @param file
 	 * @param printString
 	 */
-	protected void appendLine(String fileName, String printString) {
+	protected void appendLine(File file, String printString) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new FileOutputStream(fileName, true));
+			o = new PrintStream(new FileOutputStream(file, true));
 			o.append(printString);
 			o.close();
 		}
@@ -232,16 +218,16 @@ public class CompoundComparison {
 		}
 	}
 	
-	protected void printSet(String fileName, String columnName, Set<CompoundItem> set) {
+	protected void printSet(File file, String columnName, Set<CompoundItem> set) {
 		ArrayList<CompoundItem> list = new ArrayList<CompoundItem>();
 		list.addAll(set);
-		printSet(fileName, columnName, list);
+		printSet(file, columnName, list);
 	}
 	
-	protected void printSet(String fileName, String columnName, ArrayList<CompoundItem> set) {
+	protected void printSet(File file, String columnName, ArrayList<CompoundItem> set) {
 		PrintStream o = null;
 		try {
-			o = new PrintStream(new File(fileName));
+			o = new PrintStream(file);
 			o.println(columnName);
 			for (CompoundItem item : set) {
 				o.println(item.frameID + "\t" + item.comparableField);
