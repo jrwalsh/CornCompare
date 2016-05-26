@@ -154,7 +154,7 @@ public class ReactionComparison {
 				}
 				
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + item.EC + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\t" + setB.get(item).EC + "\n";
 			}
 		}
 		uniqueListA.removeAll(matched);
