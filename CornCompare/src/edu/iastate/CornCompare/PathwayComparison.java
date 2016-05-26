@@ -75,8 +75,8 @@ public class PathwayComparison {
 		}
 		
 		for (Frame node : frameList.rawList) {
-			if (node.isClassFrame()) frameList.classList.add(new PathwayItem(node.getLocalID(), node.getLocalID()));
-			else frameList.instanceList.add(new PathwayItem(node.getLocalID(), node.getLocalID()));
+			if (node.isClassFrame()) frameList.classList.add(new PathwayItem(node.getLocalID(), node.getLocalID(), node.getCommonName()));
+			else frameList.instanceList.add(new PathwayItem(node.getLocalID(), node.getLocalID(), node.getCommonName()));
 		}
 		
 		if (verbose) {
@@ -159,11 +159,11 @@ public class PathwayComparison {
 			e.printStackTrace();
 		}
 		
-		String matchSetOutput = organismA + "\t\t" + organismB + "\t\n";
+		String matchSetOutput = organismA + "\t\t\t" + organismB + "\t\n";
 		for (PathwayItem item : uniqueListA) {
 			if (setB.containsValue(item)) {
 				matched.add(item);
-				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\n";
+				matchSetOutput = matchSetOutput + item.frameID + "\t" + item.comparableField + "\t" + item.commonName + "\t" + setB.get(item).frameID + "\t" + setB.get(item).comparableField + "\t" + setB.get(item).commonName + "\n";
 			}
 		}
 		uniqueListA.removeAll(matched);
@@ -234,7 +234,7 @@ public class PathwayComparison {
 			o = new PrintStream(file);
 			o.println(columnName);
 			for (PathwayItem item : set) {
-				o.println(item.frameID + "\t" + item.comparableField);
+				o.println(item.frameID + "\t" + item.comparableField + "\t" + item.commonName);
 			}
 			o.close();
 		}

@@ -6,11 +6,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class PathwayItem {
 	public String frameID;
 	public String comparableField;
+	public String commonName;
 
 	// ComparableField in the case for pathways is expected to be the frameID
-	public PathwayItem (String frameID, String comparableField) {
+	public PathwayItem (String frameID, String comparableField, String commonName) {
 		this.frameID = frameID;
 		this.comparableField = comparableField;
+		this.commonName = commonName;
 	}
 	
 	@Override
