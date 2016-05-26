@@ -11,8 +11,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
+import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 /**
@@ -101,11 +103,44 @@ public class ProteinComparison {
 		
 		conn.selectOrganism(organism);
 		
-		Set<ProteinItem> tempRemoveDuplicateSet = new HashSet<ProteinItem>();
-		
-		// First remove any Protein with a duplicate common name.  Since we are matching on common names, these will complicate the matching process.
-		int countDuplicateNames = 0;
+		// First convert any descriptive enzyme names into GRMZM id's.
+		// We ran into a large problem where MaizeCyc had an unreasonable number of duplicated common names (up to 325 proteins with the 
+		// same name affecting about 5800+ proteins). We handle this by converting those proteins with non-serialized names (i.e. names that
+		// don't begin with GRMZM or AC####) into the name of the associated gene.  We checked and almost all proteins had genes (except ~20 in CornCyc
+		// and ~1 in MaizeCyc).
+		ArrayList<ProteinItem> fixName = new ArrayList<ProteinItem>();
+		int countFixedNames = 0;
 		for (ProteinItem item : frameList.instanceList) {
+			if (item.comparableField.startsWith("AC") || item.comparableField.startsWith("GRMZM")) {
+				fixName.add(item);
+			} else {
+				try {
+					Protein protein = (Protein)Protein.load(conn, item.frameID);
+					Gene gene = protein.getGenes().get(0);
+					if (gene.getCommonName().startsWith("AC") || gene.getCommonName().startsWith("GRMZM")) {
+						if (verbose) {
+//							System.out.println("Converting protein ID for \"" + item.frameID + " - " + item.comparableField + "\" to \"" + item.frameID + " - " + gene.getCommonName() + "\"");
+							appendLine(logFile, "Converting protein ID for \"" + item.frameID + " - " + item.comparableField + "\" to \"" + item.frameID + " - " + gene.getCommonName() + "\""+"\n");
+						}
+						item.comparableField = gene.getCommonName();
+						countFixedNames++;
+					}
+				} catch (Exception e) {
+					System.err.println("Warning: Unable to convert \"" + item.frameID + " - " + item.comparableField + "\" to a standardized name");
+					appendLine(logFile, "Warning: Unable to convert \"" + item.frameID + " - " + item.comparableField + "\" to a standardized name"+"\n");
+				}
+				fixName.add(item);
+			}
+		}
+		if (verbose) {
+			System.out.println("Converted a total of " + countFixedNames + " protein names to serialized IDs");
+			appendLine(logFile, "Converted a total of " + countFixedNames + " protein names to serialized IDs"+"\n");
+		}
+		
+		Set<ProteinItem> tempRemoveDuplicateSet = new HashSet<ProteinItem>();
+		// Next remove any Protein with a duplicate common name.  Since we are matching on common names, these will complicate the matching process.
+		int countDuplicateNames = 0;
+		for (ProteinItem item : fixName) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
 //				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
@@ -122,7 +157,8 @@ public class ProteinComparison {
 		Set<ProteinItem> tempRemoveMissingAnnotationSet = new HashSet<ProteinItem>();
 		for (ProteinItem item : tempRemoveDuplicateSet) {
 			Frame product = Frame.load(conn, item.frameID);
-			if (!product.getSlotValues("CATALYZES").isEmpty() || !product.getSlotValues("GO-TERMS").isEmpty()) {
+			//TODO JRW 5/26/2016 need a switch which allows user to select either GO term association or reaction association as the criteria which defines an acceptably annotated protein
+			if (!product.getSlotValues("CATALYZES").isEmpty()) { //|| !product.getSlotValues("GO-TERMS").isEmpty()) {
 				tempRemoveMissingAnnotationSet.add(item);
 			} else {
 				if (verbose) {

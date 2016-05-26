@@ -135,7 +135,8 @@ public class GeneComparison {
 				ArrayList<String> productsOfGene = conn.allProductsOfGene(item.frameID);
 				for (String productID : productsOfGene) {
 					Frame product = Frame.load(conn, productID);
-					if (!product.getSlotValues("CATALYZES").isEmpty() || !product.getSlotValues("GO-TERMS").isEmpty()) {
+					//TODO JRW 5/26/2016 need a switch which allows user to select either GO term association or reaction association as the criteria which defines an acceptably annotated gene
+					if (!product.getSlotValues("GO-TERMS").isEmpty()) { //(!product.getSlotValues("CATALYZES").isEmpty()) {// || !product.getSlotValues("GO-TERMS").isEmpty()) {
 						foundGood = true;
 						break;
 					}
