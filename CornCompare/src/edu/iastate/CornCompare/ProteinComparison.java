@@ -16,6 +16,7 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
 import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
+import edu.iastate.javacyco.Reaction;
 
 /**
  * This object controls the comparison of Proteins between the two provided pathway tools organisms.
@@ -248,13 +249,74 @@ public class ProteinComparison {
 		uniqueListA.removeAll(matched);
 		uniqueListB.removeAll(matched);
 		
+		// Additional comparison of the EC number differences between matching proteins
+		int uniqueA = 0;
+		int uniqueB = 0;
+		int agree = 0;
+		for (ProteinItem item : matched) {
+			try {
+				conn.selectOrganism(organismA);
+				Protein proteinA = (Protein) Protein.load(conn, item.frameID);
+				HashSet<String> ecOfProteinA = new HashSet<String>();
+//				System.out.println(organismA + " has protein " + proteinA.getLocalID() + " with EC ");
+				for (Object rxn : conn.reactionsOfProtein(proteinA.getLocalID())) {
+					Reaction reaction = new Reaction(conn, rxn.toString());
+					if (reaction.getEC() != null && !reaction.getEC().equalsIgnoreCase("null")) {
+//						String ec = reaction.getEC();
+						String ec = reaction.getEC().substring(reaction.getEC().indexOf("-")+1, reaction.getEC().indexOf("."));
+						ecOfProteinA.add(ec);
+					}
+				}
+//				System.out.println();
+				
+				conn.selectOrganism(organismB);
+				Protein proteinB = (Protein) Protein.load(conn, setB.get(item).frameID);
+				HashSet<String> ecOfProteinB = new HashSet<String>();
+//				System.out.println(organismB + " has protein " + proteinB.getLocalID() + " with EC ");
+				for (Object rxn : conn.reactionsOfProtein(proteinB.getLocalID())) {
+					Reaction reaction = new Reaction(conn, rxn.toString());
+					if (reaction.getEC() != null && !reaction.getEC().equalsIgnoreCase("null")) {
+//						String ec = reaction.getEC();
+						String ec = reaction.getEC().substring(reaction.getEC().indexOf("-")+1, reaction.getEC().indexOf("."));
+						ecOfProteinB.add(ec);
+					}
+				}
+//				System.out.println();
+				
+				HashSet<String> a = new HashSet<String>();
+				HashSet<String> b = new HashSet<String>();
+				HashSet<String> ab = new HashSet<String>();
+				a.addAll(ecOfProteinA);
+				a.removeAll(ecOfProteinB);
+				b.addAll(ecOfProteinB);
+				b.removeAll(a);
+				ab.addAll(ecOfProteinA);
+				ab.retainAll(ecOfProteinB);
+				uniqueA += a.size();
+				uniqueB += b.size();
+				agree += ab.size();
+				
+				System.out.println(proteinA.getLocalID() + " : " + proteinB.getLocalID());
+				System.out.println(ecOfProteinA);
+				System.out.println(ecOfProteinB);
+			} catch (PtoolsErrorException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		if (verbose) {
 			System.out.println("Matching Frames: " + matched.size());
 			System.out.println("Frames in A: " + uniqueListA.size());
 			System.out.println("Frames in B: " + uniqueListB.size());
+			System.out.println("EC that agree: " + agree);
+			System.out.println("Unique protein-EC pairs in A: " + uniqueA);
+			System.out.println("Unique protein-EC pairs in B: " + uniqueB);
 			appendLine(logFile, "Matching Frames: " + matched.size()+"\n");
 			appendLine(logFile, "Frames in A: " + uniqueListA.size()+"\n");
 			appendLine(logFile, "Frames in B: " + uniqueListB.size()+"\n");
+			appendLine(logFile, "EC that agree: " + agree+"\n");
+			appendLine(logFile, "Unique protein-EC pairs in A: " + uniqueA+"\n");
+			appendLine(logFile, "Unique protein-EC pairs in B: " + uniqueB+"\n");
 		}
 		
 		// Print matching results
