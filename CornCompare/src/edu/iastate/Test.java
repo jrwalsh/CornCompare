@@ -5,18 +5,24 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import edu.iastate.javacyco.Compound;
 import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.GOTerm;
 import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Pathway;
+import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
+import edu.iastate.javacyco.Reaction;
 
 public class Test {
 	public static void main(String[] args) {
 		try {
 			Long start = System.currentTimeMillis();
 			
-			run();
+//			run();
+			comparePathwayGenes();
+//			deleteGO();
 			
 			Long stop = System.currentTimeMillis();
 			Long runtime = (stop - start) / 1000;
@@ -28,12 +34,83 @@ public class Test {
 		}
 	}
 	
+	private static void deleteGO() throws PtoolsErrorException {
+		int port = 4444;
+//		String organismCorn = "CORN";
+		String organismMaize = "MAIZE";
+		JavacycConnection conn = new JavacycConnection("jrwalsh.student.iastate.edu", port);
+		conn.selectOrganism(organismMaize);
+		
+//		// Print out sizes of each database type
+//		System.out.println(conn.getClassAllInstances(Gene.GFPtype).size());
+//		System.out.println(conn.getClassAllInstances(Protein.GFPtype).size());
+//		System.out.println(conn.getClassAllInstances(Compound.GFPtype).size());
+//		System.out.println(conn.getClassAllInstances(Reaction.GFPtype).size());
+//		System.out.println(conn.getClassAllInstances(Pathway.GFPtype).size());
+		
+		// Try printing a frame
+//		Frame proteinFrame = Frame.load(conn, "GBWI-57641-MONOMER");
+//		proteinFrame.putSlotValues("GO-TERMS", new ArrayList<String>());
+//		proteinFrame.commit();
+//		proteinFrame.print();
+		
+//		// Delete GO terms
+//		ArrayList<Frame> proteinFrames = conn.getAllGFPInstances(Protein.GFPtype);
+//		for (Frame proteinFrame : proteinFrames) {
+//			proteinFrame.putSlotValues("GO-TERMS", new ArrayList<String>());
+//			proteinFrame.commit();
+//		}
+		
+//		// Delete non EV-COMP GO terms
+//		ArrayList<Frame> proteinFrames = conn.getAllGFPInstances(Protein.GFPtype);
+//		for (Frame proteinFrame : proteinFrames) {
+//			HashMap<String, ArrayList<String>> goTermList = new HashMap<String, ArrayList<String>>();
+//			for (Object goTerm : proteinFrame.getSlotValues("GO-TERMS")) {
+//				ArrayList<String> goCitations = new ArrayList<String>();
+//				for (Object annot : proteinFrame.getAnnotations("GO-TERMS", goTerm.toString(), "CITATIONS")) {
+//					if (annot.toString().contains("EV-COMP")) goCitations.add(annot.toString());
+//				}
+//				if (!goCitations.isEmpty()) goTermList.put(goTerm.toString(), goCitations);
+//			}
+//			ArrayList<String> goTerms = new ArrayList<String>();
+//			goTerms.addAll(goTermList.keySet());
+//			proteinFrame.putSlotValues("GO-TERMS", goTerms);
+//			for (String goTerm : goTerms) {
+//				proteinFrame.putLocalSlotValueAnnotations("GO-TERMS", goTerm, "CITATIONS", goTermList.get(goTerm));
+//			}
+//			proteinFrame.commit();
+//		}
+		
+		// Print GO terms
+		String out = "";
+		ArrayList<Frame> proteinFrames = conn.getAllGFPInstances(Protein.GFPtype);
+		for (Frame proteinFrame : proteinFrames) {
+//			System.out.println(proteinFrame.getSlotValues("GO-TERMS"));
+			for (Object goTerm : proteinFrame.getSlotValues("GO-TERMS")) {
+				for (Object annot : proteinFrame.getAnnotations("GO-TERMS", goTerm.toString(), "CITATIONS")) {
+//					System.out.println(proteinFrame.getLocalID() + "\t" + goTerm.toString() + "\t" + annot.toString());
+					out += proteinFrame.getLocalID() + "\t" + goTerm.toString() + "\t" + annot.toString() + "\n";
+				}
+			}
+		}
+		printString(new File("/home/jesse/Desktop/goterms.tab"), out);
+		
+	}
+
 	private static void run() throws PtoolsErrorException {
 		int port = 4444;
 		String organismCorn = "CORN";
 		String organismMaize = "MAIZE";
 		JavacycConnection conn = new JavacycConnection("", port);//TODO set up way to specify server
+	}
+	
+	private static void comparePathwayGenes() throws PtoolsErrorException {
+		int port = 4444;
+		String organismCorn = "CORN";
+		String organismMaize = "MAIZE";
+		JavacycConnection conn = new JavacycConnection("jrwalsh.student.iastate.edu", port);//TODO set up way to specify server
 		
+		// Compare pathway-gene membership
 		conn.selectOrganism(organismCorn);
 		ArrayList<Frame> cornPathways = conn.getAllGFPInstances(Pathway.GFPtype);
 		HashMap<String,ArrayList<String>> cornPathwayGenes = new HashMap<String,ArrayList<String>>();
