@@ -18,7 +18,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
  * string values, inconsistencies in the implementation of the InChI's between CornCyc and MaizeCyc cause this to be unreliable.  Therefore, we match based on frameIDs
  * and simply warn when the CommonName or InChI does not match.
  * 
- * @author Jesse
+ * @author Jesse R Walsh
  * @date 2/10/2016
  */
 public class CompoundComparison {
@@ -101,12 +101,10 @@ public class CompoundComparison {
 		
 		Set<CompoundItem> tempRemoveDuplicateSet = new HashSet<CompoundItem>();
 		
-		// First remove any compounds with a duplicate common name.  Since we are matching on common names, duplicates will complicate the matching process.
-		// Note that we do not expect any duplicate compound names.
+		// Note that we do not expect any duplicates since we are matching on Frame IDs (which are guaranteed to be unique).
 		int countDuplicateNames = 0;
 		for (CompoundItem item : frameList.instanceList) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
-//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
 				countDuplicateNames++;
 			}

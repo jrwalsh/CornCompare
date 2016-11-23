@@ -26,7 +26,7 @@ import edu.iastate.javacyco.Reaction;
  * 
  * This object is specifically tailored to the data in the MaizeCyc and CornCyc databases and is not guaranteed to work properly with other organisms.
  * 
- * @author Jesse
+ * @author Jesse R Walsh
  * @date 2/10/2016
  */
 public class ProteinComparison {
@@ -120,7 +120,6 @@ public class ProteinComparison {
 					Gene gene = protein.getGenes().get(0);
 					if (gene.getCommonName().startsWith("AC") || gene.getCommonName().startsWith("GRMZM")) {
 						if (verbose) {
-//							System.out.println("Converting protein ID for \"" + item.frameID + " - " + item.comparableField + "\" to \"" + item.frameID + " - " + gene.getCommonName() + "\"");
 							appendLine(logFile, "Converting protein ID for \"" + item.frameID + " - " + item.comparableField + "\" to \"" + item.frameID + " - " + gene.getCommonName() + "\""+"\n");
 						}
 						item.comparableField = gene.getCommonName();
@@ -143,7 +142,6 @@ public class ProteinComparison {
 		int countDuplicateNames = 0;
 		for (ProteinItem item : fixName) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
-//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
 				countDuplicateNames++;
 			}
@@ -158,12 +156,10 @@ public class ProteinComparison {
 		Set<ProteinItem> tempRemoveMissingAnnotationSet = new HashSet<ProteinItem>();
 		for (ProteinItem item : tempRemoveDuplicateSet) {
 			Frame product = Frame.load(conn, item.frameID);
-			//TODO JRW 5/26/2016 need a switch which allows user to select either GO term association or reaction association as the criteria which defines an acceptably annotated protein
-			if (!product.getSlotValues("CATALYZES").isEmpty()) { //|| !product.getSlotValues("GO-TERMS").isEmpty()) {
+			if (!product.getSlotValues("CATALYZES").isEmpty()) {
 				tempRemoveMissingAnnotationSet.add(item);
 			} else {
 				if (verbose) {
-//					System.out.println("Removing " + item.frameID + ": no annotation");
 					appendLine(logFile, "Removing " + item.frameID + ": no annotation"+"\n");
 					countNoAnnotation++;
 				}
@@ -201,7 +197,6 @@ public class ProteinComparison {
 			ProteinItem proteinItem = new ProteinItem(item.frameID, itemProteinID);
 			if (processedList.add(proteinItem)) {
 				if (verbose && !item.comparableField.equalsIgnoreCase(proteinItem.comparableField)) {
-//					System.out.println("Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""");
 					appendLine(logFile, "Updating name from \"" + item.frameID + " - " + item.comparableField + "\" to \"" + proteinItem.frameID + " - " + proteinItem.comparableField + "\""+"\n");
 				}
 			} else {
@@ -258,30 +253,24 @@ public class ProteinComparison {
 				conn.selectOrganism(organismA);
 				Protein proteinA = (Protein) Protein.load(conn, item.frameID);
 				HashSet<String> ecOfProteinA = new HashSet<String>();
-//				System.out.println(organismA + " has protein " + proteinA.getLocalID() + " with EC ");
 				for (Object rxn : conn.reactionsOfProtein(proteinA.getLocalID())) {
 					Reaction reaction = new Reaction(conn, rxn.toString());
 					if (reaction.getEC() != null && !reaction.getEC().equalsIgnoreCase("null")) {
-//						String ec = reaction.getEC();
 						String ec = reaction.getEC().substring(reaction.getEC().indexOf("-")+1, reaction.getEC().indexOf("."));
 						ecOfProteinA.add(ec);
 					}
 				}
-//				System.out.println();
 				
 				conn.selectOrganism(organismB);
 				Protein proteinB = (Protein) Protein.load(conn, setB.get(item).frameID);
 				HashSet<String> ecOfProteinB = new HashSet<String>();
-//				System.out.println(organismB + " has protein " + proteinB.getLocalID() + " with EC ");
 				for (Object rxn : conn.reactionsOfProtein(proteinB.getLocalID())) {
 					Reaction reaction = new Reaction(conn, rxn.toString());
 					if (reaction.getEC() != null && !reaction.getEC().equalsIgnoreCase("null")) {
-//						String ec = reaction.getEC();
 						String ec = reaction.getEC().substring(reaction.getEC().indexOf("-")+1, reaction.getEC().indexOf("."));
 						ecOfProteinB.add(ec);
 					}
 				}
-//				System.out.println();
 				
 				HashSet<String> a = new HashSet<String>();
 				HashSet<String> b = new HashSet<String>();
@@ -384,19 +373,4 @@ public class ProteinComparison {
 			System.exit(0);
 		}
 	}
-	
-	//TODO Add in GO citation counting/comparing
-//	for (Frame protein : proteinNodes) {
-//		try {
-//			for (Object goTerm : protein.getSlotValues("GO-TERMS")) {
-//				uniqueGoTerms.add(goTerm.toString());
-//				gotermAssignments++;
-//				for(Object citation : protein.getAnnotations("GO-TERMS", goTerm.toString(), "CITATIONS")) {
-//					gotermCitations++;
-//				}
-//			}
-//		} catch (Exception e) {
-//			System.out.println("Problem with protein : " + protein.getLocalID() + " : " + protein.isClassFrame());
-//		}
-//	}
 }

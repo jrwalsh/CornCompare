@@ -20,7 +20,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
   * 
   * We expect most of the pathway data in CornCyc and MaizeCyc to have been automatically pulled from MetaCyc as needed during the pathway inference step of Pathologic.
   * 
-  * @author Jesse
+  * @author Jesse R Walsh
   *
   */
 public class PathwayComparison {
@@ -105,7 +105,6 @@ public class PathwayComparison {
 		int countDuplicateNames = 0;
 		for (PathwayItem item : frameList.instanceList) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
-//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
 				countDuplicateNames++;
 			}

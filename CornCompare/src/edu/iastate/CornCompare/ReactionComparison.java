@@ -15,11 +15,11 @@ import edu.iastate.javacyco.PtoolsErrorException;
 /**
   * This object controls the comparison of reactions between the two provided pathway tools organisms.  We also output EC numbers in order to compare them externally.
   * 
-  * @author Jesse
+  * @author Jesse R Walsh
   * @date 2/10/2016
   */
 public class ReactionComparison {
-	private final String ptoolsClass = "|Reactions|"; //TODO consider |Transport-Reactions|?
+	private final String ptoolsClass = "|Reactions|";
 	private JavacycConnection conn;
 	private boolean verbose;
 	private String organismA;
@@ -102,7 +102,6 @@ public class ReactionComparison {
 		int countDuplicateNames = 0;
 		for (ReactionItem item : frameList.instanceList) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
-//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
 				countDuplicateNames++;
 			}
@@ -112,7 +111,6 @@ public class ReactionComparison {
 			appendLine(logFile, "Removed a total of " + countDuplicateNames + " objects due to duplicate common names"+"\n");
 		}
 		
-		//TODO Consider filtering for reactions with gene association, or reactions with protein association, or reactions in a pathway, or reactions with an EC number?
 		Set<ReactionItem> processedList = new HashSet<ReactionItem>();
 		processedList.addAll(tempRemoveDuplicateSet);
 		
