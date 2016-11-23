@@ -14,13 +14,13 @@ CornCompare requires access to a running Pathway Tools server hosting both CornC
 
 3) CornCyc and MaizeCyc (http://www.maizegdb.org/metabolic_pathways/) database files must be installed in the local folder of the Pathway Tools server.  This will make them available to be queried through the Pathway Tools API using JavaCycO.
 
-CornCompare itself is available as an executable java file (https://github.com/jrwalsh/CornCompare/releases/download/v0.2-beta/CornCompare_v0.2-beta.jar).  To use CornCompare, download the jar file.  Open a terminal and change directory to the location the jar file was downloaded to.  CornCompare takes two arguments: the IP address of the host machine which is running Pathway Tools and a path to a folder that CornCompare can write its output to.
+CornCompare itself is available as an executable java file (https://github.com/jrwalsh/CornCompare/releases/download/v0.3-beta/CornCompare_v0.3-beta.jar).  To use CornCompare, download the jar file.  Open a terminal and change directory to the location the jar file was downloaded to.  CornCompare takes two arguments: the IP address of the host machine which is running Pathway Tools and a path to a folder that CornCompare can write its output to.
 
 Use
 --------------
 Example use:
 ````
-  java -jar CornCompare_v0.2-beta.jar ip.of.ptools.host ~/CornCompare_output
+  java -jar CornCompare_v0.3-beta.jar ip.of.ptools.host ~/CornCompare_output
 ````
 
 Example Output
