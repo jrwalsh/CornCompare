@@ -66,8 +66,10 @@ public class Main {
 	
 	private static void run(String host, String organismCorn, String organismMaize, int port, boolean verbose, String outputDir) {
 		GeneComparison geneCompare = new GeneComparison(host, organismCorn, organismMaize, port, outputDir, verbose);
-		geneCompare.compare(false);
-		geneCompare.compare(true);
+		geneCompare.compare(false, true);
+		geneCompare.compare(true, true);
+//		geneCompare.compare(false, false);
+//		geneCompare.compare(true, false);
 		
 		ProteinComparison proteinCompare = new ProteinComparison(host, organismCorn, organismMaize, port, outputDir, verbose);
 		proteinCompare.compare();

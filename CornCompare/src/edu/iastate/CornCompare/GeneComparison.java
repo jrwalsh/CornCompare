@@ -21,7 +21,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
  * 
  * This object is specifically tailored to the data in the MaizeCyc and CornCyc databases and is not guaranteed to work properly with other organisms.
  * 
- * @author Jesse
+ * @author Jesse R Walsh
  * @date 2/10/2016
  */
 public class GeneComparison {
@@ -95,7 +95,7 @@ public class GeneComparison {
 	 * @return
 	 * @throws PtoolsErrorException
 	 */
-	private Set<GeneItem> preProcess(String organism, FrameList<GeneItem> frameList, boolean includeTranscripts) throws PtoolsErrorException {
+	private Set<GeneItem> preProcess(String organism, FrameList<GeneItem> frameList, boolean includeTranscripts, boolean useGOAnnotation) throws PtoolsErrorException {
 		if (verbose) {
 			if (includeTranscripts) {
 				System.out.println("Performing preprocessing steps on " + ptoolsClass + " for " + organism + " including transcripts...");
@@ -114,7 +114,6 @@ public class GeneComparison {
 		int countDuplicateNames = 0;
 		for (GeneItem item : frameList.instanceList) {
 			if (!tempRemoveDuplicateSet.add(item) && verbose) {
-//				System.out.println("Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name");
 				appendLine(logFile, "Removing \"" + item.frameID + " - " + item.comparableField + "\" from set: duplicate common name"+"\n");
 				countDuplicateNames++;
 			}
@@ -124,8 +123,8 @@ public class GeneComparison {
 			appendLine(logFile, "Removed a total of " + countDuplicateNames + " objects due to duplicate common names"+"\n");
 		}
 		
-		// Next, we only consider genes with some form of annotation.  We define annotation as having a link to at least one GO annotation and/or 1 
-		// reaction catalyzing gene product.
+		// Next, we only consider genes with some form of annotation.  We define annotation as having a link to at least one GO annotation 
+		// or 1 reaction catalyzing gene product. The use selects which type of annotation to use
 		int countNoAnnotation = 0;
 		Set<GeneItem> tempRemoveMissingAnnotationSet = new HashSet<GeneItem>();
 		for (GeneItem item : tempRemoveDuplicateSet) {
@@ -135,10 +134,16 @@ public class GeneComparison {
 				ArrayList<String> productsOfGene = conn.allProductsOfGene(item.frameID);
 				for (String productID : productsOfGene) {
 					Frame product = Frame.load(conn, productID);
-					//TODO JRW 5/26/2016 need a switch which allows user to select either GO term association or reaction association as the criteria which defines an acceptably annotated gene
-					if (!product.getSlotValues("CATALYZES").isEmpty()) { //(!product.getSlotValues("GO-TERMS").isEmpty()) {
-						foundGood = true;
-						break;
+					if (useGOAnnotation) {
+						if (!product.getSlotValues("GO-TERMS").isEmpty()) {
+							foundGood = true;
+							break;
+						}
+					} else {
+						if (!product.getSlotValues("CATALYZES").isEmpty()) {
+							foundGood = true;
+							break;
+						}
 					}
 				}
 			} catch (PtoolsErrorException e) {
@@ -238,15 +243,15 @@ public class GeneComparison {
 		}
 	}
 	
-	public void compare(boolean includeTranscripts) {
+	public void compare(boolean includeTranscripts, boolean useGOAnnotation) {
 		Set<GeneItem> matched = new HashSet<GeneItem>();
 		Set<GeneItem> uniqueListA = new HashSet<GeneItem>();
 		Set<GeneItem> uniqueListB = new HashSet<GeneItem>();
 		HashMap<GeneItem,GeneItem> setB = new HashMap<GeneItem,GeneItem>(); // Needed a get method for uniqueList.  Quick solution: make a matching HashMap.
 		
 		try {
-			uniqueListA = preProcess(organismA, framesA, includeTranscripts);
-			uniqueListB = preProcess(organismB, framesB, includeTranscripts);
+			uniqueListA = preProcess(organismA, framesA, includeTranscripts, useGOAnnotation);
+			uniqueListB = preProcess(organismB, framesB, includeTranscripts, useGOAnnotation);
 			for (GeneItem item : uniqueListB) {
 				setB.put(item, item); 
 			}
