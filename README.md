@@ -25,4 +25,4 @@ Example use:
 
 Example Output
 --------------
-https://github.com/jrwalsh/CornCompare/files/300926/Results.of.Comparison.on.CornCyc.and.MaizeCyc.zip
+[Comparison between CornCyc 4.0 and MaizeCyc 2.2](https://github.com/jrwalsh/CornCompare/files/609396/Comparison_CornCyc_to_MaizeCyc.zip)
