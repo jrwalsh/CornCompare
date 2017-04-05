@@ -4,16 +4,11 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import edu.iastate.javacyco.Compound;
 import edu.iastate.javacyco.Frame;
-import edu.iastate.javacyco.GOTerm;
-import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Pathway;
 import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
-import edu.iastate.javacyco.Reaction;
 
 public class Test {
 	public static void main(String[] args) {
@@ -21,6 +16,7 @@ public class Test {
 			Long start = System.currentTimeMillis();
 			
 //			run();
+//			test();
 			comparePathwayGenes();
 //			deleteGO();
 			
@@ -33,7 +29,11 @@ public class Test {
 			System.out.println("Caught a "+e.getClass().getName()+". Shutting down...");
 		}
 	}
-	
+
+	private static void test() {
+		
+	}
+
 	private static void deleteGO() throws PtoolsErrorException {
 		int port = 4444;
 //		String organismCorn = "CORN";
@@ -108,7 +108,7 @@ public class Test {
 		int port = 4444;
 		String organismCorn = "CORN";
 		String organismMaize = "MAIZE";
-		JavacycConnection conn = new JavacycConnection("jrwalsh.student.iastate.edu", port);//TODO set up way to specify server
+		JavacycConnection conn = new JavacycConnection("localhost", port);//TODO set up way to specify server
 		
 		// Compare pathway-gene membership
 		conn.selectOrganism(organismCorn);
@@ -165,13 +165,13 @@ public class Test {
 				maizeGenes.removeAll(bothGenes);
 				
 				for (String gene : bothGenes) {
-					outString += pathway.getLocalID() + "\t" + gene + "\tx\tx\n";
+					outString += pathway.getLocalID() + "\t" + pathway.getCommonName() + "\t" + gene + "\tx\tx\n";
 				}
 				for (String gene : cornGenes) {
-					outString += pathway.getLocalID() + "\t" + gene + "\tx\t\n";
+					outString += pathway.getLocalID() + "\t" + pathway.getCommonName() + "\t" + gene + "\tx\t\n";
 				}
 				for (String gene : maizeGenes) {
-					outString += pathway.getLocalID() + "\t" + gene + "\t\tx\n";
+					outString += pathway.getLocalID() + "\t" + pathway.getCommonName() + "\t" + gene + "\t\tx\n";
 				}
 			}
 		}
